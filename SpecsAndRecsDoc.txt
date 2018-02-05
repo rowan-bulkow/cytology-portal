@@ -1,0 +1,112 @@
+﻿Software Requirements Specification
+
+
+For
+
+
+<Cytology cell annotation portal>
+
+
+
+
+Version 1.0 approved
+
+
+
+
+Prepared by <Nelson Crockett, Rowan Bulkow, Joshua Nugent>
+
+
+
+
+<Cytology>
+
+
+
+
+
+
+<4FEB18>
+
+
+
+
+________________
+
+
+Table of Contents
+
+
+1. Binding Contract
+   1. Project
+   2. Deliverables
+      1. Specification
+      2. Classification
+      3. Web Portal
+   1. Buyer
+   2. Providers
+1. Specifications and Requirements 
+   1. System Features
+      1. Specification
+      2. Classification
+      3. Web Portal
+   1. Interface Requirements
+   2. Nonfunctional Requirements 
+      1. Performance
+      2. Security
+      3. Usability 
+      4. Storage
+
+
+________________
+
+
+1. THIS PROJECT AGREEMENT AND STATEMENT OF WORK (this “Agreement”) is entered into by and between the undersigned Buyer and Service Provider as of 5FEB18.  This Agreement is made in pursuance of the Project described herein.  
+   1. Cytology cell annotation portal. Cytology is a study and classification of tissue cells taken from a swab or a biopsy. The project will process the scanned cytology slides and analyze them for the content. The machine learning algorithm, on the very high level, will output the confidence value between 0-1 identifying if the overall slide is 0: normal or 1: abnormal. The intermediate values indicate degree of abnormal cells in the slide. On the low level the machine learning algorithms will output the size and color histograms of detected nuclei bodies. In addition to the machine intelligent component that analyzes the content, the client requested a web portal for users to be able to register, upload scanned images, have the images manually annotated by a human through an online interface and analyzed by an algorithm with the above described functionality.
+   2. Deliverables
+      1. Specification: For this project any groups of cells that are scanned will have to have each cell scanned. We cannot have a cell missed in the scanning process. Thus we have to find a method that allows for each cell to be registered by the machine learning algorithm. 
+      2. Classification: Any cell scanned by the algorithms used in this project will have to have a confirmation rate of around 100% to not be cancer. Cells cannot be considered to not be cancer unless they have that high pass rate. If possible we will add onto this to register the degree of cancer that a cell might have. 
+      3. Web Portal: The web portal will provide a method for a user to upload a photo that they want to have scanned using our process. Then that photo will be analyzed and the results shown. With the option of the photo being stored on the web portal. 
+   1. Buyer
+      1. Robin Collingwood
+         1. Signed name: ______________________________________
+         2. Date : __________________________
+      1. Martin Cenek
+         1. Signed name: ______________________________________
+         2. Date : __________________________
+   1. Providers
+      1. Nelson Crockett
+         1. Signed name: ___________________________
+      1. Rowan Bulkow
+         1. Signed name: ___________________________
+      1. Joshua Nugent
+         1. Signed name: ___________________________
+1. Specifications and Requirements 
+
+
+   1. System Features:
+      1. Specification: When slides of cells are scanned and uploaded to the web portal, the slides are analyzed by the software in two main stages. The first stage of analysis is specification, where the image must be segmented into sections for each cell and prepared for the next stage of analysis. The software should use machine learning or other algorithms to  identify which sections of the image contain cells and then separate these regions in a format that can be processed by the classifier (ii). Additionally, the software should be able to separate cells that overlap into their own section, as the second stage of analysis requires the image section of a single cell. This feature has a high priority since the cells must be identified before they can be classified, and clumps of cells are somewhat common in the slides. The cost of this feature is also high, since accurately separating clumps of overlapping cells is difficult.
+      2. Classification: After the first stage of analysis (segmentation) has taken place, the second stage of analysis involves classifying cells into two categories: Non-Cancerous and Cancerous. The software should use machine learning to classify the cells. This feature has a high priority since it is the main function of the software. The cost of this feature is medium, since some work already exists for feature, but requires data and time to create properly. 
+      3. Web Portal: The web portal should allow a user to upload multiple photos and view information within each photo from the analysis. After uploading photos, a user should be able to select one of the photos or a subsection of one of the photos for analysis. After the analysis of the photo is finished, the image should be annotated with the results of the analysis: data about which cells were classified as Cancerous, as well as classifications with a low confidence. A user should be able to manually annotate the photo. This feature has a medium priority, since the web portal is meant to support the other two features. The cost of this feature is medium, since large images are being uploaded, modified, & displayed.
+
+
+   1. Interface Requirements[a]: 
+The interface should be easy to navigate, and to achieve this the developers will meet regularly with the sponsors to workshop and create an appropriate interface. So far, the list of features includes uploading and managing files, running analysis, viewing analysis results, and annotating uploaded images.
+
+
+
+
+
+
+   1. Nonfunctional Requirements:
+      1. Performance: As the analysis of this portal is meant to aid pathologists in their work, the run time of the algorithms must be within a reasonable time frame - they cannot take a day to segment and classify a single slide. The use of multi-threading in this project is intended to speed up the analysis process.
+      2. Security: It is, at some point, possible that this will be used in real time to analyze patient data. Thus, if any personal medical data is available within the web portal, there must be appropriate security put in place to protect this data. This could include: authenticated user accounts, a third party authentication service, and hosting on a protected server.
+      3. Usability: As this tool is meant to aid pathologists, it should be relatively easy to use and navigate. User’s should see an organized view of the analysis results, and be able to move quickly through these results and grade as accurate or inaccurate.
+      4. Storage: As the images being processed are very large, there needs to either be a large amount of storage on the server hosting the portal, or not many images may be present on the server at any given time. This is further complicated by the fact that transferring images between server and client will be slow due to the size of the image. To make this tool usable on a large scale, these significant problems would need to be addressed, problems which are not within the scope of this contract.
+
+
+
+
+
+
+[a]I agree, we should ask about the interface, but for now I'm just going to put something about how we need to work with the clients on it.
