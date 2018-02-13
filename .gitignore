@@ -2,4 +2,4 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/cytology-portal/Content/Images/Thumbs.db
+/cytology-portal/Content/Images/
