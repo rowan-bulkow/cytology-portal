@@ -1,11 +1,50 @@
-﻿@{
+﻿@model cytology_portal.Models.CytologyViewModel
+@{
     ViewBag.Title = "Home Page";
 }
-
-<div>
+<br /><br />
+<div class="container">
 @using (Html.BeginForm("SaveImage", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
 {
-    <input type="file" name="file" />
-    <input type="submit" value="OK" />
+    <div class="col-md-3">
+        <input type="file" name="file" />
+    </div>
+    <div class="col-md-3">
+        <input type="submit" value="Upload" />
+    </div>
+}
+</div>
+<br /><br /><br />
+<div>
+@using (Html.BeginForm("SegmentImage", "Home"))
+{
+    @Html.DropDownListFor(y => y.Filename, Model.ImageNames)
+    <div class="row">
+        <div class="col-md-2">
+            <span>X Position</span>
+            @Html.TextBoxFor(y => y.X)
+        </div>
+        <div class="col-md-2">
+            <span>Y Position</span>
+            @Html.TextBoxFor(y => y.Y)
+        </div>
+        <div class="col-md-2">
+            <span>Height</span>
+            @Html.TextBoxFor(y => y.Height)
+        </div>
+        <div class="col-md-2">
+            <span>Width</span>
+            @Html.TextBoxFor(y => y.Width)
+        </div>
+        <div class="col-md-2">
+            <span>Clustering</span>
+            @Html.TextBoxFor(y => y.ClusteringThreshold)
+        </div>
+        <div class="col-md-2">
+            <span>Smoothing</span>
+            @Html.TextBoxFor(y => y.SmoothingThreshold)
+        </div>
+    </div>
+    <input type="submit" value="Segment" />
 }
 </div>
