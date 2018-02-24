@@ -9,3 +9,4 @@ obj/
 [Bb]in
 [Dd]ebug*/
 [Rr]elease*/
+/packages/Microsoft.Net.Compilers.2.4.0/tools/Microsoft.Build.Tasks.CodeAnalysis.dll
