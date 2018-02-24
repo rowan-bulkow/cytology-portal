@@ -4,3 +4,9 @@
 
 /cytology-portal/Content/Images/
 /.vs/
+*.suo
+*.ide
+obj/
+[Bb]in
+[Dd]ebug*/
+[Rr]elease*/
