@@ -4,3 +4,9 @@
 
 /cytology-portal/Content/Images/
 /.vs/
+/.vs/cytology-portal/v15/sqlite3/
+/.vs/cytology-portal/v15/
+/cytology-portal/Content/Images/*
+/.vs/*
+/.vs/cytology-portal/v15/sqlite3/*
+/.vs/cytology-portal/v15/*
