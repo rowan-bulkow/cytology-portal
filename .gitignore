@@ -3,5 +3,9 @@
 ################################################################################
 
 /cytology-portal/Content/Images/
-*.ide
 *.suo
+*.ide
+obj/
+[Bb]in
+[Dd]ebug*/
+[Rr]elease*/
