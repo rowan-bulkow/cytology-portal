@@ -7,6 +7,9 @@ using System.IO;
 using System.Drawing;
 using ImageMagick;
 using OpenCvSharp;
+using BitMiracle.LibTiff.Classic;
+using BitMiracle;
+using System.Drawing.Imaging;
 
 namespace cytology_portal.Controllers
 {
@@ -68,6 +71,119 @@ namespace cytology_portal.Controllers
             var path = Path.Combine(Server.MapPath("~/Content/Images/"), "Seg" + filename);
             //Image img = Image.FromFile(projectDirectory + "/Content/Images/" + filename);
             //img.Save(path);
+
+            string[] arguments =
+            {
+                @"Sample Data\multipage.tif,1",
+                "SplitTiffImage_2ndPage.tif"
+            };
+            
+            //TiffCP.Program.Main(arguments);
+            //BitMiracle.
+            //System.Diagnostics.Process.Start("SplitTiffImage_2ndPage.tif");
+
+            List<byte[]> paginatedData = new List<byte[]>();
+            using (Image img = Image.FromFile(model.Filename))
+            {
+                paginatedData.Clear();
+                int frameCount = img.GetFrameCount(FrameDimension.Page);
+                for (int i = 0; i < frameCount; i++)
+                {
+                    img.SelectActiveFrame(new FrameDimension(img.FrameDimensionsList[0]), i);
+                    using (MemoryStream memstr = new MemoryStream())
+                    {
+                        img.Save(memstr, ImageFormat.Tiff);
+                        paginatedData.Add(memstr.ToArray());
+                    }
+                }
+            }
+
+
+
+
+            //using (Tiff image = Tiff.Open(model.Filename, "r"))
+            //{
+            //    if (image == null)
+            //        return null;
+
+            //    int dircount = 0;
+            //    do
+            //    {
+            //        var path2 = Path.Combine(Server.MapPath("~/Content/Images/"), dircount + filename);
+            //        Tiff image2 = Tiff.Open(path2, "w");
+            //        dircount++;
+            //    } while (image.ReadDirectory());
+
+            //    System.Console.Out.WriteLine("{0} directories", dircount);
+            //}
+
+
+            //using (Tiff tif = Tiff.Open(model.Filename, "r"))
+            //{
+            //    short maxDirIndex = 0;
+            //    int maxW = 0;
+            //    int maxL = 0;
+            //    do
+            //    {
+            //        FieldValue[] imageLength = tif.GetField(TiffTag.IMAGELENGTH);
+            //        int  length1 = imageLength[0].ToInt();
+            //        FieldValue[] imageWidth = tif.GetField(TiffTag.IMAGEWIDTH);
+            //        int width1 = imageWidth[0].ToInt();
+            //        if (length1 * width1 > maxL * maxW)
+            //        {
+            //            maxW = width1;
+            //            maxL = length1;
+            //            maxDirIndex = tif.CurrentDirectory();
+            //        }
+            //    } while (tif.ReadDirectory());
+            //    tif.SetDirectory(maxDirIndex);
+            //    // Find the width and height of the image
+            //    FieldValue[] value = tif.GetField(TiffTag.IMAGEWIDTH);
+            //    int width = value[0].ToInt();
+
+            //    value = tif.GetField(TiffTag.IMAGELENGTH);
+            //    int height = value[0].ToInt();
+
+
+
+            //    // Read the image into the memory buffer 
+            //    int[] raster = new int[height * width];
+            //    if (!tif.ReadRGBAImage(width, height, raster))
+            //    { 
+            //        return null;
+            //    }
+
+            //    using (Bitmap bmp = new Bitmap(width, height, PixelFormat.Format32bppRgb))
+            //    {
+            //        Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
+
+            //        BitmapData bmpdata = bmp.LockBits(rect, ImageLockMode.ReadWrite, PixelFormat.Format32bppRgb);
+            //        byte[] bits = new byte[bmpdata.Stride * bmpdata.Height];
+
+            //        for (int y = 0; y < bmp.Height; y++)
+            //        {
+            //            int rasterOffset = y * bmp.Width;
+            //            int bitsOffset = (bmp.Height - y - 1) * bmpdata.Stride;
+
+            //            for (int x = 0; x < bmp.Width; x++)
+            //            {
+            //                int rgba = raster[rasterOffset++];
+            //                bits[bitsOffset++] = (byte)((rgba >> 16) & 0xff);
+            //                bits[bitsOffset++] = (byte)((rgba >> 8) & 0xff);
+            //                bits[bitsOffset++] = (byte)(rgba & 0xff);
+            //                bits[bitsOffset++] = (byte)((rgba >> 24) & 0xff);
+            //            }
+            //        }
+
+            //        System.Runtime.InteropServices.Marshal.Copy(bits, 0, bmpdata.Scan0, bits.Length);
+            //        bmp.UnlockBits(bmpdata);
+            //        var path3 = Path.Combine(Server.MapPath("~/Content/Images/"), "TiffTo32BitBitmapcyto.bmp");
+            //        bmp.Save(path3);
+            //        System.Diagnostics.Process.Start(path3);
+            //    }
+            //}
+
+
             using (MagickImage image = new MagickImage(model.Filename))
             {
                 
