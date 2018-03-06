@@ -47,4 +47,10 @@
     </div>
     <input type="submit" value="Segment" />
 }
+    <br /><br />
+    @using (Html.BeginForm("SplitTiff", "Home"))
+    {
+        @Html.DropDownListFor(y => y.Filename, Model.ImageNames)
+        <input type="submit" value="Split Tiff Image" />
+    }
 </div>

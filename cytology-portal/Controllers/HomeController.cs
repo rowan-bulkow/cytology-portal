@@ -10,6 +10,7 @@ using OpenCvSharp;
 using BitMiracle.LibTiff.Classic;
 using BitMiracle;
 using System.Drawing.Imaging;
+using System.Windows.Media.Imaging;
 
 namespace cytology_portal.Controllers
 {
@@ -72,31 +73,31 @@ namespace cytology_portal.Controllers
             //Image img = Image.FromFile(projectDirectory + "/Content/Images/" + filename);
             //img.Save(path);
 
-            string[] arguments =
-            {
-                @"Sample Data\multipage.tif,1",
-                "SplitTiffImage_2ndPage.tif"
-            };
-            
+            //string[] arguments =
+            //{
+            //    @"Sample Data\multipage.tif,1",
+            //    "SplitTiffImage_2ndPage.tif"
+            //};
+
             //TiffCP.Program.Main(arguments);
             //BitMiracle.
             //System.Diagnostics.Process.Start("SplitTiffImage_2ndPage.tif");
 
-            List<byte[]> paginatedData = new List<byte[]>();
-            using (Image img = Image.FromFile(model.Filename))
-            {
-                paginatedData.Clear();
-                int frameCount = img.GetFrameCount(FrameDimension.Page);
-                for (int i = 0; i < frameCount; i++)
-                {
-                    img.SelectActiveFrame(new FrameDimension(img.FrameDimensionsList[0]), i);
-                    using (MemoryStream memstr = new MemoryStream())
-                    {
-                        img.Save(memstr, ImageFormat.Tiff);
-                        paginatedData.Add(memstr.ToArray());
-                    }
-                }
-            }
+            //List<byte[]> paginatedData = new List<byte[]>();
+            //using (Image img = Image.FromFile(model.Filename))
+            //{
+            //    paginatedData.Clear();
+            //    int frameCount = img.GetFrameCount(FrameDimension.Page);
+            //    for (int i = 0; i < frameCount; i++)
+            //    {
+            //        img.SelectActiveFrame(new FrameDimension(img.FrameDimensionsList[0]), i);
+            //        using (MemoryStream memstr = new MemoryStream())
+            //        {
+            //            img.Save(memstr, ImageFormat.Tiff);
+            //            paginatedData.Add(memstr.ToArray());
+            //        }
+            //    }
+            //}
 
 
 
@@ -184,9 +185,58 @@ namespace cytology_portal.Controllers
             //}
 
 
+            
+            //Stream imageStreamSource = new FileStream(model.Filename, FileMode.Open, FileAccess.Read, FileShare.Read);
+            //TiffBitmapDecoder decoder = new TiffBitmapDecoder(imageStreamSource, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
+            //int pagecount = decoder.Frames.Count;
+            //if (pagecount > 1)
+            //{
+            //    string fNameBase = Path.GetFileNameWithoutExtension("filename");
+            //    string filePath = Path.GetDirectoryName("filename");
+            //    for (int i = 0; i < pagecount; i++)
+            //    {
+            //        //string outputName = string.Format(@"{0}\SplitImages\{1}-{2}.tif", filePath, fNameBase, i.ToString());
+            //        var path5 = Path.Combine(Server.MapPath("~/Content/Images/"), "newpage_" + pagecount + ".tif");
+            //        FileStream stream = new FileStream(path5, FileMode.Create, FileAccess.Write);
+            //        TiffBitmapEncoder encoder = new TiffBitmapEncoder();
+            //        encoder.Frames.Add(decoder.Frames[i]);
+            //        encoder.Save(stream);
+            //        stream.Dispose();
+            //    }
+            //    imageStreamSource.Dispose();
+            //}
+
+
+
+            //int activePage;
+            //int pages;
+
+
+            ////Image image3 = Image.FromFile(model.Filename);
+
+            ////pages = image3.GetFrameCount(FrameDimension.Page);
+            ////image3.Dispose();
+            //using (Image image2 = Image.FromFile(model.Filename))
+            //{
+            //    pages = image2.GetFrameCount(FrameDimension.Page);
+            //    for (int index = 0; index < pages; index++)
+            //    {
+            //        if (index == 2)
+            //        {
+            //            continue;
+            //        }
+            //        activePage = index + 1;
+            //        image2.SelectActiveFrame(FrameDimension.Page, index);
+            //        var path5 = Path.Combine(Server.MapPath("~/Content/Images/"), "page_" + activePage.ToString() + ".tif");
+            //        image2.Save(path5);
+            //    }
+            //}
+
+
+
             using (MagickImage image = new MagickImage(model.Filename))
             {
-                
+
                 //image.RePage();
                 image.Crop(model.X, model.Y, model.Width, model.Height);
                 image.Segment(ColorSpace.Lab, model.ClusteringThreshold, model.SmoothingThreshold);
@@ -216,5 +266,37 @@ namespace cytology_portal.Controllers
 
             return RedirectToAction("Index");
         }
+
+
+
+        public ActionResult SplitTiff(cytology_portal.Models.CytologyViewModel model)
+        {
+
+            int activePage;
+            int pages;
+
+            using (Image image2 = Image.FromFile(model.Filename))
+            {
+                pages = image2.GetFrameCount(FrameDimension.Page);
+                if (pages > 1)
+                {
+                    for (int index = 0; index < pages; index++)
+                    {
+                        if (index == 2)
+                        {
+                            continue;
+                        }
+                        activePage = index + 1;
+                        image2.SelectActiveFrame(FrameDimension.Page, index);
+                        var path5 = Path.Combine(Server.MapPath("~/Content/Images/"), "page_" + activePage.ToString() + ".tif");
+                        image2.Save(path5);
+                    }
+                }
+            }
+            return RedirectToAction("Index");
+        }
+
+
+
     }
 }
