@@ -1,25 +1,39 @@
+
+
+To download image magick go to the following url
+
+https://www.imagemagick.org/script/index.php
+
+
+ 
+To run any of these commands go to the terminal in mac and linux, comand prompt in windows.
+
+
 identify cyto_1_1.tif
 
-This will get the informamtion about the contents of the tif image. To get the page of the image that contains the most information this 
-step is required. I went for the tif layer with the largest pixel size after I used this command.
+This will get the informamtion about the contents of the tif file. Use this to get page of the file that you want.
+I went for the tif layer with the largest pixel size after I used this command.
 
 convert -define registry:temporary-path=/media/nelson/LinuxExt -extract 48720x47860+0+0 cyto_1_1.tif[2] cytoTest.tif
+convert -define registry:temporary-path=/media/nelson/LinuxExt -extract 48720x20000+0+0 cyto_1_1.tif[2] cytoTest.tif
 
 This command is broken down like so.
 
 Convert changes the image selected
 
 define is used to create a different path to access memory that is used by the image magick command as storage to 
-create the new image. The default setting uses ram. The large image that I selected for this command was too large for the ram that I had 
+create the new image. The default setting uses ram. The image that I selected for this command was too large for the ram that I had 
 on my computer (ram 16GB). So I'm passing the memory value to be used to my mounted hard drive. This can be done to any other part of 
-computer memory only the path name has to be changed. 
+computer memory only the path name has to be changed. This will vary computer to computer.
 
 Another warning with this method of dealing with this image is you can exceed the max size of a tif image allowed. This limit is 3GB.
 To deal with this just cut out only a segement of the tif image.
 
 Extract is used to actaully extract the tif image. It is defined as (height)x(width)+(x coordinate)+(y coordinate). File selected to get 
-the image from. New file created.
+the image from, with page selecter. New file created.
 
 To view the image since it will be since it will be very large you can use the imagemagick view that comes with imagae magick. Check the 
-applications that you have to open images.
+applications that you have to open images. An easy way to do this is just right click on the image. Then look through the different aplictions listed under open with.
+
+url used to get the info:   https://www.imagemagick.org/script/architecture.php#tera-pixel
 
