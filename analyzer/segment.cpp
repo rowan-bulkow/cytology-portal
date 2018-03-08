@@ -1,5 +1,5 @@
 // segment.cpp
-// initial program to apply c++ tools from various libraries, including vlfeat
+// initial program to apply c++ tools from various libraries, including vlfeat and opencv
 // to recreate the pipeline of cell segmentation described in the paper
 // by Zhi et al. :
 // https://cs.adelaide.edu.au/~zhi/publications/paper_TIP_Jan04_2015_Finalised_two_columns.pdf
@@ -31,21 +31,25 @@ using namespace cv;
 
 int main (int argc, const char * argv[]) {
     VL_PRINT ("Vlfeat successfully connected!\n");
-    Mat image = imread("../images/cyto.tif");
 
+    Mat image = imread("../images/cyto.tif");
     imshow("pre", image);
 
+    // convert to a format that VL_Feat can use
     Mat toFloat;
     image.convertTo(toFloat, CV_64FC3, 1/255.0);
-
     double* vlimg = (double*) toFloat.data;
 
+    // kernelsize and maxdist are arguments that the quick shift algorithm requires
     int kernelsize = 2;
     int maxdist = 6;
 
+    // meta-data about the image
     int channels = 3;
     int width = image.cols;
     int height = image.rows;
+
+    // debug data
     printf("Image data: (rows) %i (cols) %i (channels) %i\n", height, width, channels);
 
     printf("Beginning quickshift...\n");
@@ -56,6 +60,8 @@ int main (int argc, const char * argv[]) {
     vl_quickshift_process(quickshift);
     int* parents = vl_quickshift_get_parents(quickshift);
     double* dists = vl_quickshift_get_dists(quickshift);
+
+    // debug data: find how many super pixels were identified
     int superpixelcount = 0;
     for(int i=0; i<width*height; i++)
     {
@@ -64,6 +70,8 @@ int main (int argc, const char * argv[]) {
     }
     printf("superpixelcount=%i\n", superpixelcount);
 
+    // apply the shift found by vl_feat quickshift to the original image
+    // (vl_feat does not do this automatically)
     for(int col=0; col<width; col++)
     {
         for(int row=0; row<height; row++)
@@ -84,6 +92,7 @@ int main (int argc, const char * argv[]) {
         }
     }
 
+    // convert back to opencv and display
     Mat postQuickShift = Mat(quickshift->height, quickshift->width, CV_64FC3, vlimg);
     imshow("quickshifted", postQuickShift);
     waitKey(0);
@@ -93,7 +102,7 @@ int main (int argc, const char * argv[]) {
     // get rid of the quickshift object
     vl_quickshift_delete(quickshift);
 
-    //imwrite("images/quickshifted_cyto.tif", img_seg);
+    imwrite("images/quickshifted_cyto.tif", postQuickShift);
 
     return 0;
 }
