@@ -2,6 +2,14 @@
 ﻿################################################################################
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
+# Ignore NuGet Packages
+*.nupkg
+
+# Ignore the packages folder
+**/packages/*
+
+# Include packages/build/, which is used as an MSBuild target
+!**/packages/build/
 
 /cytology-portal/Content/Images/
 *.suo
@@ -10,5 +18,5 @@ obj/
 [Bb]in
 [Dd]ebug*/
 [Rr]elease*/
-/packages/
- 
+/packages/Microsoft.Net.Compilers.2.4.0/tools/Microsoft.Build.Tasks.CodeAnalysis.dll
+/.vs/cytology-portal/v15/sqlite3/storage.ide-journal
