@@ -54,3 +54,39 @@
         <input type="submit" value="Split Tiff Image" />
     }
 </div>
+
+
+@*<br /><br /><br /><br />
+@{  var imagePath = "";
+    if (Request["Filename"] != null)
+    {
+        imagePath = "/Content/Images/" + Request["Filename"];
+    }
+} 
+<form method="post" action="">
+    <div>
+        I want to see:
+        @Html.DropDownListFor(y => y.Filename, Model.ImageNames, new {name = "photoChoice" })
+        &nbsp;
+        <input type="submit" value="Submit" />
+    </div>
+    <div style="padding:10px;">
+        @if (imagePath != "" && imagePath != null)
+        {
+            <img src="@imagePath" alt="Sample Image" width="300px" />
+        }
+    </div>
+</form>*@
+
+
+<br /><br />
+
+@using (Html.BeginForm("DisplayThumbnail", "Home"))
+{
+    @Html.DropDownListFor(y => y.Filename, Model.ImageNames)
+    <input type="submit" value="Choose" />
+    if (Model.ImagePath != "" && Model.ImagePath != null)
+    {
+    <img src="@Model.ImagePath" alt="Sample Image" width="300px" />
+    } 
+}

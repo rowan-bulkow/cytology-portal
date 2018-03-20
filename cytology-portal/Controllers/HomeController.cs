@@ -16,14 +16,18 @@ namespace cytology_portal.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public ActionResult Index(string imagePath = "")
         {
             cytology_portal.Models.CytologyViewModel model = new cytology_portal.Models.CytologyViewModel();
             string projectDirectory = Path.GetDirectoryName(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile);
             string[] files = Directory.GetFiles(projectDirectory + "/Content/Images/");
+            for (int i = 0; i < files.Length; i++)
+            {
+                files[i] = Path.GetFileName(files[i]);
+            }
             files.ToList();
             model.ImageNames = new SelectList(files);
-            
+            model.ImagePath = imagePath;
             return View(model);
         }
 
@@ -58,7 +62,51 @@ namespace cytology_portal.Controllers
             }
             return RedirectToAction("Index"); 
         }
-         
+
+        
+
+        public ActionResult DisplayThumbnail(cytology_portal.Models.CytologyViewModel model)
+        {
+            var imagePath = "";
+            var useTifThumbnail = false;
+            if (ModelState.IsValid &&  model.Filename.EndsWith(".tif"))
+            { 
+                var originalFilename = Path.GetFileName(model.Filename);
+                //string fileId = Guid.NewGuid().ToString().Replace("-", "");
+                //fileId = originalFilename + fileId;
+                var path = Path.Combine(Server.MapPath("~/Content/Images/"), originalFilename);
+                
+                using (Image image2 = Image.FromFile(path))
+                { 
+                    var path5 = Path.Combine(Server.MapPath("~/Content/Images/thumbs/"), Path.GetFileNameWithoutExtension(model.Filename)  + ".png");
+                    imagePath = "./Content/Images/thumbs/" + Path.GetFileNameWithoutExtension(model.Filename) + ".png";
+                    useTifThumbnail = true;
+                    image2.Save(path5, ImageFormat.Png);
+                    //pages = image2.GetFrameCount(FrameDimension.Page);
+                    //if (pages > 1)
+                    //{
+                    //    for (int index = 0; index < pages; index++)
+                    //    {
+                    //        if (index == 2)
+                    //        {
+                    //            continue;
+                    //        }
+                    //        activePage = index + 1;
+                    //        image2.SelectActiveFrame(FrameDimension.Page, index);
+                    //        var path5 = Path.Combine(Server.MapPath("~/Content/Images/"), "page_" + activePage.ToString() + ".tif");
+                    //        image2.Save(path5);
+                    //    }
+                    //}
+                } 
+            }  
+            if(!useTifThumbnail)
+            {
+                imagePath = "./Content/Images/" + model.Filename;
+            }
+            return RedirectToAction("Index", "Home", new { imagePath = imagePath });
+            
+        }
+
         public ActionResult SegmentImage(cytology_portal.Models.CytologyViewModel model)
         {
             //          myBitmap = new Bitmap(@"C:\Documents and   
@@ -69,7 +117,7 @@ namespace cytology_portal.Controllers
             //Graphics g = Graphics.FromImage(img);
             //g.DrawImage(img, 500, 500);
             var filename = Path.GetFileName(model.Filename);
-            var path = Path.Combine(Server.MapPath("~/Content/Images/"), "Seg" + filename);
+            var path = Path.Combine(Server.MapPath("~/Content/Images/results/"), "Seg" + filename);
             //Image img = Image.FromFile(projectDirectory + "/Content/Images/" + filename);
             //img.Save(path);
 
