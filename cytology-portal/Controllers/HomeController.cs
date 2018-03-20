@@ -98,10 +98,7 @@ namespace cytology_portal.Controllers
             //        }
             //    }
             //}
-
-
-
-
+             
             //using (Tiff image = Tiff.Open(model.Filename, "r"))
             //{
             //    if (image == null)
