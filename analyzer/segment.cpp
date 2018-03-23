@@ -32,22 +32,39 @@ using namespace cv;
 int main (int argc, const char * argv[]) {
     VL_PRINT ("Vlfeat successfully connected!\n");
 
+    // kernelsize and maxdist are arguments that the quick shift algorithm requires
+    int kernelsize = 4;
+    int maxdist = 8;
+    if(argc > 1)
+    {
+        kernelsize = atoi(argv[1]);
+        maxdist = atoi(argv[2]);
+        printf("Read args: kernelsize=%i maxdist=%i\n", kernelsize, maxdist);
+    }
+
     Mat image = imread("../images/cyto.tif");
     imshow("pre", image);
 
-    // convert to a format that VL_Feat can use
-    Mat toFloat;
-    image.convertTo(toFloat, CV_64FC3, 1/255.0);
-    double* vlimg = (double*) toFloat.data;
-
-    // kernelsize and maxdist are arguments that the quick shift algorithm requires
-    int kernelsize = 2;
-    int maxdist = 6;
-
     // meta-data about the image
-    int channels = 3;
+    int channels = image.channels();
     int width = image.cols;
     int height = image.rows;
+
+    // convert to a format that VL_Feat can use
+    Mat tempMat;
+    image.convertTo(tempMat, CV_64FC3, 1/255.0);
+    double* cvimg = (double*) tempMat.data;
+    double* vlimg = (double*) calloc(channels*width*height, sizeof(double));
+    for(int c=0; c<channels; c++)
+    {
+        for(int col=0; col<width; col++)
+        {
+            for(int row=0; row<height; row++)
+            {
+                vlimg[c*width*height + row + col*height] = cvimg[(row + col*height)*channels + c];
+            }
+        }
+    }
 
     // debug data
     printf("Image data: (rows) %i (cols) %i (channels) %i\n", height, width, channels);
@@ -76,8 +93,9 @@ int main (int argc, const char * argv[]) {
     {
         for(int row=0; row<height; row++)
         {
-            int linearIndex = row + col*height;
-            int parentIndex = parents[linearIndex];
+            // int linearIndex = row + col*height;
+            int partialLinearIndex = row*width + col;
+            int parentIndex = parents[partialLinearIndex];
             while(true)
             {
                 if(dists[parentIndex] > maxdist)
@@ -87,22 +105,70 @@ int main (int argc, const char * argv[]) {
 
             for(int c=0; c<channels; c++)
             {
-                vlimg[linearIndex*3 + c] = vlimg[parentIndex*3 + c];
+                int linearIndex = c*width*height + partialLinearIndex;
+                vlimg[linearIndex] = vlimg[c*width*height + parentIndex];
             }
         }
     }
 
     // convert back to opencv and display
-    Mat postQuickShift = Mat(quickshift->height, quickshift->width, CV_64FC3, vlimg);
+    for(int c=0; c<channels; c++)
+    {
+        for(int col=0; col<width; col++)
+        {
+            for(int row=0; row<height; row++)
+            {
+                cvimg[(row + col*height)*channels + c] = vlimg[c*width*height + row + col*height];
+            }
+        }
+    }
+    Mat postQuickShift = Mat(quickshift->height, quickshift->width, CV_64FC3, cvimg);
     imshow("quickshifted", postQuickShift);
-    waitKey(0);
-
     printf("Quickshift complete\n");
 
-    // get rid of the quickshift object
+    // imwrite("../images/quickshifted_cyto.tif", postQuickShift); // TODO This isn't working - comes out
+    // as all black, or almost all black...
+    cv::Mat outimg;
+    postQuickShift.convertTo(outimg, CV_16U, 65535);
+    imwrite("../images/quickshifted_cyto.png", outimg);
+
+    // apply Canny Edge Detection
+    printf("Beginning Edge Detection...\n");
+    cv::Mat postEdgeDetection;
+    postEdgeDetection.create(postQuickShift.size(), postQuickShift.type());
+    postEdgeDetection = Scalar::all(0);
+    cv::Mat blurred;
+    cv::blur(postQuickShift, blurred, cv::Size(3,3));
+    blurred.convertTo(blurred, CV_8UC3, 255);
+    cv::Canny(blurred, postEdgeDetection, 20, 40);
+
+    imshow("edges", postEdgeDetection);
+    printf("Edge Detection complete\n");
+    postEdgeDetection.convertTo(outimg, CV_16U, 65535);
+    imwrite("../images/edgeDetected_cyto.png", outimg);
+
+    cv::dilate(postEdgeDetection, postEdgeDetection, cv::Mat(), cv::Point(-1, -1), 2);
+    cv::erode(postEdgeDetection, postEdgeDetection, cv::Mat(), cv::Point(-1, -1), 2);
+
+    imshow("post dilate/erode", postEdgeDetection);
+    postEdgeDetection.convertTo(outimg, CV_16U, 65535);
+    imwrite("../images/edgeDetectedEroded_cyto.png", outimg);
+
+    // find contours
+    std::vector<vector<Point> > contours;
+    std::vector<Vec4i> hierarchy;
+
+    cv::findContours(postEdgeDetection, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+    cv::drawContours(image, contours, -1, cv::Scalar(255, 0, 255), 1.5);
+
+    imshow("contours", image);
+    //image.convertTo(outimg, CV_16U, 65535);
+    imwrite("../images/contours_cyto.png", image);
+
+    // clean up
     vl_quickshift_delete(quickshift);
+    free(vlimg);
 
-    imwrite("images/quickshifted_cyto.tif", postQuickShift);
-
+    waitKey(0);
     return 0;
 }
