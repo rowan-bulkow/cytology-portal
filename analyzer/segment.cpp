@@ -1,7 +1,7 @@
 // segment.cpp
 // initial program to apply c++ tools from various libraries, including vlfeat and opencv
 // to recreate the pipeline of cell segmentation described in the paper
-// by Zhi et al. :
+// by Zhi Lu et al. :
 // https://cs.adelaide.edu.au/~zhi/publications/paper_TIP_Jan04_2015_Finalised_two_columns.pdf
 
 /*
@@ -14,7 +14,7 @@ g++ segment.cpp -I$VLROOT -L$VLROOT/bin/glnxa64/ -lvl
 where $VLROOT is the path to your vlroot source files, so ex: /usr/local/lib/vlfeat-0.9.21
 
 then setup and env variable in the terminal,
-export LD_LIBRARY_PATH=$VLROOT/bin/glnxa64
+export LD_LIBRARY_PATH=/usr/local/lib/vlfeat-0.9.21/bin/glnxa64
 (or append this to the existing LD_LIBRARY_PATH if needed)
 
 then run the executable and cross your fingers
@@ -126,8 +126,6 @@ int main (int argc, const char * argv[]) {
     imshow("quickshifted", postQuickShift);
     printf("Quickshift complete\n");
 
-    // imwrite("../images/quickshifted_cyto.tif", postQuickShift); // TODO This isn't working - comes out
-    // as all black, or almost all black...
     cv::Mat outimg;
     postQuickShift.convertTo(outimg, CV_16U, 65535);
     imwrite("../images/quickshifted_cyto.png", outimg);
