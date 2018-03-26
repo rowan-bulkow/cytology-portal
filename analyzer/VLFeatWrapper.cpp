@@ -54,12 +54,15 @@ namespace segment
         int quickshift(double* image, int kernelsize, int maxdist)
         {
             VlQS* quickshift = vl_quickshift_new(image, width, height, channels);
+            VL_PRINT("Created vl quickshift object\n");
             vl_quickshift_set_kernel_size(quickshift, kernelsize);
             vl_quickshift_set_max_dist(quickshift, maxdist);
+            VL_PRINT("Set quickshift arguments\n");
             vl_quickshift_process(quickshift);
+            VL_PRINT("Performed quickshift\n");
             int* parents = vl_quickshift_get_parents(quickshift);
             double* dists = vl_quickshift_get_dists(quickshift);
-            vl_quickshift_delete(quickshift);
+            VL_PRINT("Deleted quickshift object\n");
 
             // debug data: find how many super pixels were identified
             int superpixelcount = 0;
@@ -91,6 +94,8 @@ namespace segment
                     }
                 }
             }
+            vl_quickshift_delete(quickshift);
+            VL_PRINT("Finished quickshift application process\n");
 
             return superpixelcount;
         }
