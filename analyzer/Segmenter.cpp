@@ -12,7 +12,7 @@ namespace segment
     class Segmenter
     {
         public:
-            
+
         void runSegmentation(int kernelsize, int maxdist) {
 
             cv::Mat image = cv::imread("../images/cyto.tif");
@@ -79,15 +79,30 @@ namespace segment
             imwrite("../images/edgeDetectedEroded_cyto.png", outimg);
 
 
-            // find contours
-            std::vector<vector<cv::Point> > contours;
-            std::vector<cv::Vec4i> hierarchy;
-            cv::findContours(postEdgeDetection, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-            cv::drawContours(image, contours, -1, cv::Scalar(255, 0, 255), 1.5);
+            // format conversion
+            postEdgeDetection.convertTo(postEdgeDetection, CV_8UC3, 255);
 
-            imshow("contours", image);
-            // image.convertTo(image, CV_8U, 255);
-            imwrite("../images/contours_cyto.png", image);
+
+            // find contours
+            vector<vector<cv::Point> > contours;
+            vector<cv::Vec4i> hierarchy;
+            cv::findContours(postEdgeDetection, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+
+            image.convertTo(outimg, CV_8UC3);
+            cv::drawContours(outimg, contours, -1, cv::Scalar(255, 0, 255), 1.5);
+            imshow("contours", outimg);
+            imwrite("../images/contours_cyto.png", outimg);
+
+
+            // find convex hulls
+            vector<vector<cv::Point> > hulls(contours.size());
+            for(unsigned int i=0; i<contours.size(); i++)
+                cv::convexHull(cv::Mat(contours[i]), hulls[i], false);
+
+            image.convertTo(outimg, CV_8UC3);
+            cv::drawContours(outimg, hulls, -1, cv::Scalar(255, 0, 255), 1);
+            imshow("hulls", outimg);
+            imwrite("../images/hulls_cyto.png", outimg);
 
 
             // clean up
