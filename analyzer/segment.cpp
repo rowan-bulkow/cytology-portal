@@ -29,8 +29,8 @@ using namespace std;
 int main (int argc, const char * argv[])
 {
     // kernelsize and maxdist are arguments that the quick shift algorithm requires
-    int kernelsize = 4;
-    int maxdist = 8;
+    int kernelsize = 2;
+    int maxdist = 4;
     if(argc > 1)
     {
         kernelsize = atoi(argv[1]);
