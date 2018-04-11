@@ -2,6 +2,7 @@
 #include <ctime>
 #include <stdio.h>
 #include "opencv2/opencv.hpp"
+#include "opencv2/features2d/features2d.hpp"
 #include "VLFeatWrapper.cpp"
 extern "C" {
     #include "vl/quickshift.h"
@@ -21,7 +22,7 @@ namespace segment
             double end;
 
             cv::Mat image = cv::imread("../images/cyto.tif");
-            cv::imshow("pre", image);
+            // cv::imshow("pre", image);
 
             // meta-data about the image
             int channels = image.channels();
@@ -51,7 +52,7 @@ namespace segment
             vlf_wrapper.convertVLFEAT_OPENCV(vlimg, cvimg);
 
             cv::Mat postQuickShift = cv::Mat(height, width, CV_64FC3, cvimg);
-            cv::imshow("quickshifted", postQuickShift);
+            // cv::imshow("quickshifted", postQuickShift);
             cv::Mat outimg;
             postQuickShift.convertTo(outimg, CV_8U, 255);
             imwrite("../images/quickshifted_cyto.png", outimg);
@@ -71,14 +72,14 @@ namespace segment
             blurred.convertTo(blurred, CV_8UC3, 255);
             cv::Canny(blurred, postEdgeDetection, 20, 40);
 
-            cv::imshow("edges", postEdgeDetection);
+            // cv::imshow("edges", postEdgeDetection);
             postEdgeDetection.convertTo(outimg, CV_8U, 255);
             cv::imwrite("../images/edgeDetected_cyto.png", outimg);
 
             cv::dilate(postEdgeDetection, postEdgeDetection, cv::Mat(), cv::Point(-1, -1), 2);
             cv::erode(postEdgeDetection, postEdgeDetection, cv::Mat(), cv::Point(-1, -1), 2);
 
-            cv::imshow("post dilate/erode", postEdgeDetection);
+            // cv::imshow("post dilate/erode", postEdgeDetection);
             postEdgeDetection.convertTo(outimg, CV_8U, 255);
             cv::imwrite("../images/edgeDetectedEroded_cyto.png", outimg);
 
@@ -97,7 +98,7 @@ namespace segment
 
             image.convertTo(outimg, CV_8UC3);
             cv::drawContours(outimg, contours, -1, cv::Scalar(255, 0, 255), 1.5);
-            cv::imshow("contours", outimg);
+            // cv::imshow("contours", outimg);
             cv::imwrite("../images/contours_cyto.png", outimg);
 
             // find convex hulls
@@ -107,7 +108,7 @@ namespace segment
 
             image.convertTo(outimg, CV_8UC3);
             cv::drawContours(outimg, hulls, -1, cv::Scalar(255, 0, 255), 1);
-            cv::imshow("hulls", outimg);
+            // cv::imshow("hulls", outimg);
             cv::imwrite("../images/hulls_cyto.png", outimg);
 
             end = (clock() - start) / CLOCKS_PER_SEC;
@@ -145,26 +146,24 @@ namespace segment
             }
             gray = gray.reshape(0, gray.rows*gray.cols);
             cv::Mat initialProbMat(width*height, 2, CV_32F, initialProbs);
+            printf("Found initial labels\n");
+
+            // magic GMM numbers
+            int maxIterations = 10;
+
             cv::Mat outputProbs;
             cv::Mat labels;
             cv::Ptr<cv::ml::EM> cell_gmm;
-            printf("Found initial labels\n");
-
-            // current performing 1 epochs -- feeding the output probabilities
-            // in as the initial probs
-            int epochs = 1;
-            for(int i=0; i<epochs; i++)
-            {
-                cell_gmm = cv::ml::EM::create();
-                cell_gmm->setClustersNumber(2);
-                cell_gmm->trainM(gray, initialProbMat, cv::noArray(), labels, outputProbs);
-                initialProbMat = cv::Mat(outputProbs);
-                printf("Finished GMM epoch: %i\n", i);
-            }
-
+            cv::TermCriteria termCrit = cv::TermCriteria();
+            termCrit.type = cv::TermCriteria::COUNT;
+            termCrit.maxCount = maxIterations;
+            cell_gmm = cv::ml::EM::create();
+            cell_gmm->setTermCriteria(termCrit);
+            cell_gmm->setClustersNumber(2);
+            cell_gmm->trainM(gray, initialProbMat, cv::noArray(), labels, outputProbs);
             labels = labels.reshape(0, image.rows);
             labels.convertTo(outimg, CV_8U, 255);
-            cv::imshow("GMM", outimg);
+            // cv::imshow("GMM", outimg);
             cv::imwrite("../images/raw_gmm.png", outimg);
 
             end = (clock() - start) / CLOCKS_PER_SEC;
@@ -181,6 +180,7 @@ namespace segment
             // opencv wants to find white object on a black background,
             // so we want to invert the labels before findContours
             labels.convertTo(labels, CV_8U, 255);
+            // TODO should be switched to bitwise not
             for(int row=0; row<labels.rows; row++)
             {
                 for(int col=0; col<labels.cols; col++)
@@ -204,31 +204,68 @@ namespace segment
             unsigned int numClumps = clumpBoundaries.size();
             image.convertTo(outimg, CV_8UC3);
             cv::drawContours(outimg, clumpBoundaries, -1, cv::Scalar(255, 0, 255), 1.5);
-            cv::imshow("clumpBoundaries", outimg);
+            // cv::imshow("clumpBoundaries", outimg);
             cv::imwrite("../images/clumpBoundaries.png", outimg);
+            // TODO these should possibly be freed at some point
             vector<cv::Rect> boundingRects = vector<cv::Rect>();
+            vector<cv::Mat> clumps = vector<cv::Mat>();
             for(unsigned int i=0; i<clumpBoundaries.size(); i++)
             {
+                // create a mask for each clump and apply it
                 cv::Mat mask = cv::Mat::zeros(image.rows, image.cols, CV_8U);
                 cv::drawContours(mask, clumpBoundaries, i, cv::Scalar(255), CV_FILLED);
                 cv::Mat fullMasked = cv::Mat(image.rows, image.cols, CV_8U);
                 fullMasked.setTo(cv::Scalar(255, 0, 255));
                 image.copyTo(fullMasked, mask);
+                // invert the mask and then invert the black pixels in the extracted image
+                cv::bitwise_not(mask, mask);
+                cv::bitwise_not(fullMasked, fullMasked, mask);
+
+                // grab the bounding rect for each clump
                 cv::Rect rect = cv::boundingRect(clumpBoundaries[i]);
                 boundingRects.push_back(rect);
+
+                // create mat of each clump
+                cv::Mat clump = cv::Mat(fullMasked, rect);
+                clumps.push_back(clump);
+
                 char buffer[200];
                 sprintf(buffer, "clump_%i", i);
-                cv::Mat clump = cv::Mat(fullMasked, rect);
+                char temp[] = "../images/clumps/";
+                strcat(temp, buffer);
+                strcat(temp, ".png");
+
                 clump.convertTo(outimg, CV_8UC3);
-                cv::imshow(buffer, outimg);
+                // cv::imshow(buffer, outimg);
+                cv::imwrite(temp, outimg);
+            }
+
+            end = (clock() - start) / CLOCKS_PER_SEC;
+            printf("Finished GMM post processing, clumps found:%i, time:%f\n", numClumps, end);
+
+
+            // MSER Magic Numbers
+            // parameters for mser from trial and error
+            int delta = 8, minArea = 15, maxArea = 100;
+            double maxVariation = 0.5, minDiversity = 0.25;
+
+            // MSER for nuclei Detection
+            // this is getting a little ridiculous - should probably define a custom data type
+            vector<vector<vector<cv::Point> > > nucleiBoundaries = vector<vector<vector<cv::Point> > >();
+            for(unsigned int i=0; i<clumps.size(); i++)
+            {
+                vector<vector<cv::Point> > regions = runMser(clumps[i], delta, minArea, maxArea, maxVariation, minDiversity);
+                nucleiBoundaries.push_back(regions);
+                clumps[i].convertTo(outimg, CV_8UC3);
+                cv::drawContours(outimg, regions, -1, cv::Scalar(255, 0, 255), 1);
+                char buffer[200];
+                sprintf(buffer, "clump_%i_nuclei", i);
+                // cv::imshow(buffer, outimg);
                 char temp[] = "../images/clumps/";
                 strcat(temp, buffer);
                 strcat(temp, ".png");
                 cv::imwrite(temp, outimg);
             }
-
-            end = (clock() - start) / CLOCKS_PER_SEC;
-            printf("Finished post processing, clumps found:%i, time:%f\n", numClumps, end);
 
 
             // clean up
@@ -237,6 +274,32 @@ namespace segment
             free(vlimg);
             printf("^C to exit\n");
             cv::waitKey(0);
+        }
+
+        /*
+        runMser takes an image and params and runs MSER algorithm on it, for nuclei detection
+        Return:
+            vector<vector<cv::Point> > = stable regions found
+        Params:
+            delta = the # of iterations a region must remain stable
+            minArea = the minimum number of pixels for a viable region
+            maxArea = the maximum number of pixels for a viable region
+            maxVariation = the max amount of variation allowed in regions
+            minDiversity = the min diversity allowed in regions
+        */
+        vector<vector<cv::Point> > runMser(cv::Mat img, int delta, int minArea, int maxArea,
+            double maxVariation, double minDiversity)
+        {
+            cv::Ptr<cv::MSER> ms = cv::MSER::create(delta, minArea, maxArea, maxVariation, minDiversity);
+            cv::Mat tmp;
+            img.convertTo(tmp, CV_8U);
+            cv::cvtColor(tmp, tmp, CV_BGR2GRAY);
+            vector<vector<cv::Point> > regions;
+            vector<cv::Rect> mser_bbox;
+
+            ms->detectRegions(tmp, regions, mser_bbox);
+
+            return regions;
         }
     };
 }
