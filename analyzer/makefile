@@ -1,4 +1,4 @@
-CC=g++
+CC=g++ -std=gnu++14
 VLROOT=/usr/local/lib/vlfeat-0.9.21/
 IDIRS=-I/usr/local/include/opencv -I/usr/local/include/opencv2 -I$(VLROOT)
 LDIRS=-L/usr/local/lib/ -L$(VLROOT)bin/glnxa64/
