@@ -23,13 +23,17 @@ namespace segment
         int threshold2 = 40;
         // GMM params
         int maxGmmIterations = 10;
-        // post GMM numbers
+        // GMM post processing params
         double minAreaThreshold = 50.0;
+        // MSER params
+        int delta = 8, minArea = 15, maxArea = 100;
+        double maxVariation = 0.5, minDiversity = 0.25;
 
         // internal attributes
         bool debug = false;
         cv::Scalar pink;
         int allContours = -1;
+        bool totalTimed = true;
 
         // Constructors
         Segmenter() { setCommonValues(); }
@@ -137,27 +141,11 @@ namespace segment
             cv::drawContours(outimg, clumpBoundaries, allContours, pink);
             cv::imwrite("../images/clumpBoundaries.png", outimg);
 
-            // find the bounding rectangle for each clump, mask the original image, then extract the clump
-            vector<cv::Rect> boundingRects = vector<cv::Rect>();
+            // extract each clump from the original image
             vector<cv::Mat> clumps = vector<cv::Mat>();
             for(unsigned int i=0; i<clumpBoundaries.size(); i++)
             {
-                // create a mask for each clump and apply it
-                cv::Mat mask = cv::Mat::zeros(image.rows, image.cols, CV_8U);
-                cv::drawContours(mask, clumpBoundaries, i, cv::Scalar(255), CV_FILLED);
-                cv::Mat fullMasked = cv::Mat(image.rows, image.cols, CV_8U);
-                fullMasked.setTo(cv::Scalar(255, 0, 255));
-                image.copyTo(fullMasked, mask);
-                // invert the mask and then invert the black pixels in the extracted image
-                cv::bitwise_not(mask, mask);
-                cv::bitwise_not(fullMasked, fullMasked, mask);
-
-                // grab the bounding rect for each clump
-                cv::Rect rect = cv::boundingRect(clumpBoundaries[i]);
-                boundingRects.push_back(rect);
-
-                // create mat of each clump
-                cv::Mat clump = cv::Mat(fullMasked, rect);
+                cv::Mat clump = extractClump(image, clumpBoundaries, i);
                 clumps.push_back(clump);
 
                 char buffer[200];
@@ -170,14 +158,12 @@ namespace segment
             if(debug) printf("Finished GMM post processing, clumps found:%i, time:%f\n", numClumps, end);
 
 
-            // MSER Magic Numbers
-            // parameters for mser from trial and error
-            int delta = 8, minArea = 15, maxArea = 100;
-            double maxVariation = 0.5, minDiversity = 0.25;
-
-            // MSER for nuclei Detection
+            // ***** ***** ***** ***** ***** ***** ***** ***** ***** ***** //
+            // MSER for Nuclei Detection
+            // ***** ***** ***** ***** ***** ***** ***** ***** ***** ***** //
             start = clock();
-            if(debug) printf("Beginning MSER nuclei detection...");
+            if(debug) printf("Beginning MSER nuclei detection...\n");
+
             // this is getting a little ridiculous - should probably define a custom data type
             vector<vector<vector<cv::Point> > > nucleiBoundaries = vector<vector<vector<cv::Point> > >();
             for(unsigned int i=0; i<clumps.size(); i++)
@@ -196,7 +182,7 @@ namespace segment
 
             // clean up
             end = (clock() - total) / CLOCKS_PER_SEC;
-            if(debug) printf("Segmentation finished, total time:%f\n", end);
+            if(debug || totalTimed) printf("Segmentation finished, total time:%f\n", end);
         }
 
         /*
@@ -388,6 +374,38 @@ namespace segment
             }
 
             return clumpBoundaries;
+        }
+
+        /*
+        extractClump takes an image, contours from the image, and an index, then masks the image to show only
+        the contour/clump specified by the index, crops, and returns the image
+        Returns:
+            cv::Mat = the image of the specified clump - masked out and cropped from the original image
+        Params:
+            cv::Mat img = the original image
+            vector<vector<cv::Point> > clumpBoundaries = the clumpBoundaries in the image
+            int clumpIndex = the index in clumpBoundaries of the clump to extract
+        */
+        cv::Mat extractClump(cv::Mat img, vector<vector<cv::Point> > clumpBoundaries, int clumpIndex)
+        {
+            // create a mask for each clump and apply it
+            cv::Mat mask = cv::Mat::zeros(img.rows, img.cols, CV_8U);
+            cv::drawContours(mask, clumpBoundaries, clumpIndex, cv::Scalar(255), CV_FILLED);
+            cv::Mat fullMasked = cv::Mat(img.rows, img.cols, CV_8U);
+            fullMasked.setTo(cv::Scalar(255, 0, 255));
+            img.copyTo(fullMasked, mask);
+            // invert the mask and then invert the black pixels in the extracted image
+            cv::bitwise_not(mask, mask);
+            cv::bitwise_not(fullMasked, fullMasked, mask);
+
+            // grab the bounding rect for each clump
+            cv::Rect rect = cv::boundingRect(clumpBoundaries[clumpIndex]);
+
+            // create mat of each clump
+            cv::Mat clump = cv::Mat(fullMasked, rect);
+
+            clump.convertTo(clump, CV_8UC3);
+            return clump;
         }
     };
 }

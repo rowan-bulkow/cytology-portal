@@ -6,7 +6,7 @@ namespace segment
 {
     class VLFeatWrapper
     {
-        public:
+    public:
 
         int width, height, channels;
 
