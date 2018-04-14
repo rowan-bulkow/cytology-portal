@@ -39,7 +39,7 @@ int main (int argc, const char * argv[])
     }
 
     segment::Segmenter seg = segment::Segmenter();
-    seg.runSegmentation(kernelsize, maxdist);
+    seg.runSegmentation("../images/cyto.tif");
     // seg.test();
 
     return 0;
