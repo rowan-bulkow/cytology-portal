@@ -60,17 +60,22 @@ namespace segment
             int threshold1 = first threshold for the hysteresis procedure.
             int threshold2 = second threshold for the hysteresis procedure.
         */
-        cv::Mat runCanny(cv::Mat img, int threshold1, int threshold2)
+        cv::Mat runCanny(cv::Mat img, int threshold1, int threshold2, bool erodeFlag=false)
         {
             cv::Mat postEdgeDetection;
             img.copyTo(postEdgeDetection);
             cv::Mat blurred;
-            cv::blur(img, blurred, cv::Size(3,3));
+            cv::blur(img, blurred, cv::Size(2,2));
             cv::Canny(blurred, postEdgeDetection, threshold1, threshold2);
 
-            // TODO these values for dilate and erode possibly should be configurable
-            cv::dilate(postEdgeDetection, postEdgeDetection, cv::Mat(), cv::Point(-1, -1), 2);
-            cv::erode(postEdgeDetection, postEdgeDetection, cv::Mat(), cv::Point(-1, -1), 2);
+            if(erodeFlag)
+            {
+                // TODO these values for dilate and erode possibly should be configurable
+                cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(2,2));
+                kernel = cv::Mat();
+                cv::dilate(postEdgeDetection, postEdgeDetection, kernel, cv::Point(-1, -1), 1);
+                cv::erode(postEdgeDetection, postEdgeDetection, kernel, cv::Point(-1, -1), 1);
+            }
 
             return postEdgeDetection;
         }
@@ -91,33 +96,49 @@ namespace segment
             int height = img.rows;
 
             cv::Mat gray;
-            img.convertTo(gray, CV_8U);
+            img.convertTo(gray, CV_8UC3);
             cv::cvtColor(gray, gray, CV_BGR2GRAY);
-            gray.convertTo(gray, CV_64F, 1/255.0);
+            gray.convertTo(gray, CV_64FC1);
 
             // create initial probabilities based on convex hulls
-            float initialProbs[width*height][2];
+            int aSize = width*height;
+            float* initialProbs = new float[aSize*2];
+            // float* initCellArr = new float[aSize];
             for(int row=0; row < height; row++)
             {
                 for(int col=0; col < width; col++)
                 {
                     for(unsigned int hullIndex=0; hullIndex < hulls.size(); hullIndex++)
                     {
-                        if(cv::pointPolygonTest(hulls[hullIndex], cv::Point2f(row, col), false) >= 0)
+                        int linearIndex = row*width + col*2;
+                        if(cv::pointPolygonTest(hulls[hullIndex], cv::Point2f(col, row), false) >= 0)
                         {
-                            initialProbs[row + col*height][0] = 1;
-                            initialProbs[row + col*height][1] = 0;
+                            initialProbs[linearIndex] = 0;
+                            // initCellArr[linearIndex] = 0;
+                            initialProbs[linearIndex+1] = 1;
+                            break;
                         }
                         else
                         {
-                            initialProbs[row + col*height][0] = 0;
-                            initialProbs[row + col*height][1] = 1;
+                            initialProbs[linearIndex] = 1;
+                            // initCellArr[linearIndex] = 1;
+                            initialProbs[linearIndex+1] = 0;
                         }
                     }
                 }
             }
+
             gray = gray.reshape(0, gray.rows*gray.cols);
-            cv::Mat initialProbMat(width*height, 2, CV_32F, initialProbs);
+            cv::Mat initialProbMat(aSize, 2, CV_32F, initialProbs);
+
+            // toggle - uncomment to give ALL init probs of one, basically no inital input
+            // initialProbMat = cv::Mat::ones(aSize, 2, CV_32F);
+
+            // TODO debugging code, keep?
+            // cv::Mat viewInitProbs(aSize, 1, CV_32F, initCellArr);
+            // viewInitProbs = viewInitProbs.reshape(0, height*2);
+            // viewInitProbs.convertTo(viewInitProbs, CV_8U, 255);
+            // cv::imwrite("../images/initialProbs.png", viewInitProbs);
 
             cv::Mat outputProbs;
             cv::Mat labels;
@@ -131,8 +152,12 @@ namespace segment
             cell_gmm->trainM(gray, initialProbMat, cv::noArray(), labels, outputProbs);
 
             labels = labels.reshape(0, img.rows);
+
             cv::Mat outimg;
-            labels.convertTo(outimg, CV_8U, 255);
+            labels.copyTo(outimg);
+            outimg.convertTo(outimg, CV_8U, 255);
+
+            delete[] initialProbs;
 
             return outimg;
         }

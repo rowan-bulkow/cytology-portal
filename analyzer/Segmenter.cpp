@@ -39,12 +39,11 @@ namespace segment
     public:
         // Constructors
         Segmenter() { setCommonValues(); }
-        Segmenter(int kernelsize, int maxdist, int maxGmmIterations)
+        Segmenter(int kernelsize, int maxdist)
         {
             setCommonValues();
             this->kernelsize = kernelsize;
             this->maxdist = maxdist;
-            this->maxGmmIterations = maxGmmIterations;
         }
 
         Segmenter(int kernelsize, int maxdist, int thres1, int thres2,  int maxGmmIterations, int minAreaThreshold, int delta, int minArea, int maxArea, double maxVariation, double minDiversity)
@@ -113,7 +112,7 @@ namespace segment
             start = clock();
             if(debug) printf("Beginning Edge Detection...\n");
 
-            cv::Mat postEdgeDetection = segTools.runCanny(postQuickShift, threshold1, threshold2);
+            cv::Mat postEdgeDetection = segTools.runCanny(postQuickShift, threshold1, threshold2, true);
             cv::imwrite("../images/edgeDetectedEroded_cyto.png", postEdgeDetection);
 
             end = (clock() - start) / CLOCKS_PER_SEC;
@@ -134,6 +133,21 @@ namespace segment
             outimg.convertTo(outimg, CV_8UC3);
             cv::drawContours(outimg, contours, allContours, pink);
             cv::imwrite("../images/contours_cyto.png", outimg);
+
+
+            // TODO I think this is a good idea -- but at the moment the focus should
+            // be on individual cell segmentation, not improving clump segmentation
+            // cv::Mat preHulls = cv::Mat::zeros(height, width, CV_8U);
+            // cv::drawContours(preHulls, contours, allContours, cv::Scalar(255, 255, 255), CV_FILLED);
+            // cv::imwrite("../images/test_contoursfull.png", preHulls);
+            // cv::erode(preHulls, preHulls, cv::Mat());
+            // cv::imwrite("../images/test_contourseroded.png", preHulls);
+            // cv::findContours(preHulls, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+            // image.copyTo(outimg);
+            // outimg.convertTo(outimg, CV_8UC3);
+            // cv::drawContours(outimg, contours, allContours, pink);
+            // cv::imwrite("../images/test_erodedcontours_cyto.png", outimg);
+
 
             // find convex hulls
             vector<vector<cv::Point> > hulls(contours.size());
