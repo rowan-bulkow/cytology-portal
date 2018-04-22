@@ -4,9 +4,9 @@
 #include "opencv2/opencv.hpp"
 #include "opencv2/features2d/features2d.hpp"
 #include "SegmenterTools.cpp"
-extern "C" {
-    #include "vl/quickshift.h"
-}
+//extern "C" {
+//    #include "vl/quickshift.h"
+//}
 
 using namespace std;
 
@@ -45,6 +45,22 @@ namespace segment
             this->kernelsize = kernelsize;
             this->maxdist = maxdist;
             this->maxGmmIterations = maxGmmIterations;
+        }
+
+        Segmenter(int kernelsize, int maxdist, int thres1, int thres2,  int maxGmmIterations, int minAreaThreshold, int delta, int minArea, int maxArea, double maxVariation, double minDiversity)
+        {
+            setCommonValues();
+            this->kernelsize = kernelsize;
+            this->maxdist = maxdist;
+            this->maxGmmIterations = maxGmmIterations;
+            this->threshold1 = thres1;
+            this->threshold2 = thres2;
+            this->minAreaThreshold = minAreaThreshold;
+            this->delta = delta;
+            this->minArea = minArea;
+            this->maxArea = maxArea;
+            this->maxVariation = maxVariation;
+            this->minDiversity = minDiversity;
         }
         // Constructor helper
         void setCommonValues()
