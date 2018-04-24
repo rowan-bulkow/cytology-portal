@@ -6,7 +6,7 @@ LINKS=-lvl -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -lopencv_highgui -l
 %.o: %.cpp
 	$(CC) -c -o $@ $< $(IDIRS) $(LDIRS) $(LINKS)
 
-segment: segment.o Segmenter.cpp VLFeatWrapper.cpp
+segment: segment.o Segmenter.cpp VLFeatWrapper.cpp Clump.cpp
 	export LD_LIBRARY_PATH=$(VLROOT)bin/glnxa64
 	$(CC) -o segment segment.o $(IDIRS) $(LDIRS) $(LINKS)
 
