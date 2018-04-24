@@ -20,27 +20,64 @@ export LD_LIBRARY_PATH=/usr/local/lib/vlfeat-0.9.21/bin/glnxa64
 then run the executable and cross your fingers
 */
 
+/*
+how to use reference: https://theboostcpplibraries.com/boost.program_options
+get boost on linux: https://stackoverflow.com/questions/12578499/how-to-install-boost-on-ubuntu
+		/use the apt-get version
+
+compliation example: g++ -std=gnu++17 segment.cpp -l boost_program_options
+	Make sure to include the "-l boost_program_options" otherwise you will get errors that do not make sense and the program will not work
+
+
+
+
+*/
+
 #include <iostream>
 #include "opencv2/opencv.hpp"
 #include "Segmenter.cpp"
+#include <boost/program_options.hpp>
 
 using namespace std;
+using namespace boost::program_options;
 
 int main (int argc, const char * argv[])
 {
-    // kernelsize and maxdist are arguments that the quick shift algorithm requires
-    int kernelsize = 2;
-    int maxdist = 4;
-    if(argc > 1)
-    {
-        kernelsize = atoi(argv[1]);
-        maxdist = atoi(argv[2]);
-        printf("Read args: kernelsize=%i maxdist=%i\n", kernelsize, maxdist);
-    }
+    try
+  {
+    options_description desc{"Options"};
+    desc.add_options()
+      ("help,h", "Help screen")
+      ("maxVariation", value<float>()->default_value(0.5f), "MaxVariation")
+      ("minDiversity", value<float>()->default_value(0.25f), "MinDiversity")
+      ("minAreaThreshold", value<float>()->default_value(50.0f), "minAreaThreshold")
+      ("kernelsize", value<int>()->default_value(2), "Kernelsize")
+      ("maxdist", value<int>()->default_value(4), "Maxdist")
+      ("threshold1", value<int>()->default_value(20), "threshold1")
+      ("threshold2", value<int>()->default_value(40), "threshold2")
+      ("maxGmmIterations", value<int>()->default_value(10), "maxGmmIterations")
+      ("delta", value<int>()->default_value(0), "delta")
+      ("minArea", value<int>()->default_value(15), "minArea")
+      ("maxArea", value<int>()->default_value(100), "maxArea")
+      ("photo", value<std::string>()->default_value("cyto.tif"), "photo");
 
-    segment::Segmenter seg = segment::Segmenter();
-    seg.runSegmentation("../images/cyto.tif");
+    variables_map vm;
+    store(parse_command_line(argc, argv, desc), vm);
+    notify(vm);
+
+  
+    segment::Segmenter seg = segment::Segmenter(vm["kernelsize"].as<int>(), vm["maxdist"].as<int>(), vm["threshold1"].as<int>(), 
+    	vm["threshold2"].as<int>(), vm["maxGmmIterations"].as<int>(), vm["minAreaThreshold"].as<float>(), vm["delta"].as<int>(),
+    	vm["minArea"].as<int>(), vm["maxArea"].as<int>(), vm["maxVariation"].as<float>(), vm["minDiversity"].as<float>());
+
+    seg.runSegmentation(vm["photo"].as<std::string>());
     // seg.test();
 
-    return 0;
+  }
+  catch (const error &ex)
+  {
+    std::cerr << ex.what() << '\n';
+  }
 }
+
+
