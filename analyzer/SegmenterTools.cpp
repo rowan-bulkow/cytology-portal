@@ -174,7 +174,7 @@ namespace segment
             double maxVariation = the max amount of variation allowed in regions
             double minDiversity = the min diversity allowed in regions
         */
-        vector<vector<cv::Point> > runMser(cv::Mat img, int delta, int minArea, int maxArea,
+        vector<vector<cv::Point> > runMser(cv::Mat img, vector<cv::Point> contour, int delta, int minArea, int maxArea,
             double maxVariation, double minDiversity)
         {
             cv::Ptr<cv::MSER> ms = cv::MSER::create(delta, minArea, maxArea, maxVariation, minDiversity);
@@ -185,6 +185,30 @@ namespace segment
             vector<cv::Rect> mser_bbox;
 
             ms->detectRegions(tmp, regions, mser_bbox);
+
+            // filter out regions that are outside the clump boundary
+            // this is a bit of a hack, but there doesn't seem to be an easy way to make
+            // cv::mser run on only a certain region within an image
+            int i = 0;
+            unsigned int numchecked = 0;
+            unsigned int originalsize = regions.size();
+            while(regions.size() > 0 && numchecked<originalsize)
+            {
+                for(cv::Point p : regions[i])
+                {
+                    if(cv::pointPolygonTest(contour, p, false) < 0)
+                    {
+                        regions.erase(regions.begin()+i);
+                        i--;
+                        break;
+                    }
+                }
+                i++;
+                numchecked++;
+            }
+
+            // TODO add debug check or rm
+            if(false) printf("regions found: %lu\n", regions.size());
 
             return regions;
         }
@@ -198,7 +222,7 @@ namespace segment
             cv::Mat img = the input image
             int minAreaThreshold = the minimum area, all contours smaller than this are discarded
         */
-        vector<vector<cv::Point> > findFinalClumpBoundaries(cv::Mat img, int minAreaThreshold)
+        vector<vector<cv::Point> > findFinalClumpBoundaries(cv::Mat img, double minAreaThreshold)
         {
             // opencv wants to find white object on a black background,
             // so we want to invert the labels before findContours
@@ -214,6 +238,9 @@ namespace segment
                 double area = cv::contourArea(contour);
                 if(area > minAreaThreshold)
                 {
+                    // TODO add debug check or rm
+                    if(false) printf("Adding new clump, size:%f threshold:%f\n", area, minAreaThreshold);
+
                     clumpBoundaries.push_back(contour);
                 }
             }

@@ -25,7 +25,7 @@ namespace segment
         // GMM params
         int maxGmmIterations = 10;
         // GMM post processing params
-        double minAreaThreshold = 100.0;
+        double minAreaThreshold = 200.0;
         // MSER params
         int delta = 8, minArea = 15, maxArea = 100;
         double maxVariation = 0.5, minDiversity = 0.25;
@@ -200,10 +200,10 @@ namespace segment
                 clump.computeBoundingRect();
                 clumps.push_back(clump);
 
-                char buffer[200];
-                sprintf(buffer, "../images/clumps/clump_%i.png", i);
-                clump.extract().convertTo(outimg, CV_8UC3);
-                cv::imwrite(buffer, outimg);
+                // char buffer[200];
+                // sprintf(buffer, "../images/clumps/clump_%i.png", i);
+                // clump.extract().convertTo(outimg, CV_8UC3);
+                // cv::imwrite(buffer, outimg);
             }
 
             end = (clock() - start) / CLOCKS_PER_SEC;
@@ -231,14 +231,42 @@ namespace segment
 
             for(unsigned int i=0; i<clumps.size(); i++)
             {
-                cv::Mat clump = clumps[i].extract(true);
-                clumps[i].nucleiBoundaries = segTools.runMser(clump, delta, minArea, maxArea, maxVariation, minDiversity);
-                clump.convertTo(outimg, CV_8UC3);
-                cv::drawContours(outimg, clumps[i].nucleiBoundaries, -1, cv::Scalar(255, 0, 255), 1);
+                cv::Mat clump = clumps[i].extract();
+                clumps[i].nucleiBoundaries = segTools.runMser(clump, clumps[i].computeOffsetContour(),
+                    delta, minArea, maxArea, maxVariation, minDiversity);
+            }
+
+            // remove clumps that don't have any nuclei
+            int tempindex = 0;
+            unsigned int numchecked = 0;
+            unsigned int originalsize = clumps.size();
+            while(clumps.size() > 0 && numchecked<originalsize)
+            {
+                if(clumps[tempindex].nucleiBoundaries.empty())
+                {
+                    clumps.erase(clumps.begin()+tempindex);
+                    tempindex--;
+                }
+                tempindex++;
+                numchecked++;
+            }
+
+            // write all the found clumps with nuclei
+            for(unsigned int i=0; i<clumps.size(); i++)
+            {
+                cv::Mat clump = clumps[i].extract();
                 char buffer[200];
+
+                clump.convertTo(outimg, CV_8UC3);
+                sprintf(buffer, "../images/clumps/clump_%i.png", i);
+                cv::imwrite(buffer, outimg);
+
+                clump.convertTo(outimg, CV_8UC3);
+                cv::drawContours(outimg, clumps[i].nucleiBoundaries, allContours, pink);
                 sprintf(buffer, "../images/clumps/clump_%i_nuclei.png", i);
                 cv::imwrite(buffer, outimg);
             }
+
             end = (clock() - start) / CLOCKS_PER_SEC;
             if(debug) printf("Finished MSER nuclei detection, time:%f\n", end);
 
