@@ -22,19 +22,19 @@
     <div class="row">
         <div class="col-md-2">
             <span>X Position</span>
-            @Html.TextBoxFor(y => y.X)
+            @Html.TextBoxFor(y => y.X, new { id = "x"})
         </div>
         <div class="col-md-2">
             <span>Y Position</span>
-            @Html.TextBoxFor(y => y.Y)
+            @Html.TextBoxFor(y => y.Y, new { id = "y" })
         </div>
         <div class="col-md-2">
             <span>Height</span>
-            @Html.TextBoxFor(y => y.Height)
+            @Html.TextBoxFor(y => y.Height, new { id = "h" })
         </div>
         <div class="col-md-2">
             <span>Width</span>
-            @Html.TextBoxFor(y => y.Width)
+            @Html.TextBoxFor(y => y.Width, new { id = "w" })
         </div>
         <div class="col-md-2">
             <span>Clustering</span>
@@ -87,6 +87,29 @@
     <input type="submit" value="Choose" />
     if (Model.ImagePath != "" && Model.ImagePath != null)
     {
-    <img src="@Model.ImagePath" alt="Sample Image" width="300px" />
+    <img id="thumbnail" src="@Model.ImagePath" alt="Sample Image" width="300px" />
     } 
+}
+
+
+@section Scripts {
+    @Scripts.Render("~/Scripts/jquery-1.10.2.min.js")
+    @Scripts.Render("~/Scripts/jquery.Jcrop.min.js") 
+<script language="Javascript">
+    jQuery(function($) {
+        $('#thumbnail').Jcrop({
+            onChange: showCoords,
+            onSelect: showCoords
+        });
+    });
+
+    function showCoords(c) {
+        $('#x').val(c.x);
+        $('#y').val(c.y);
+        $('#x2').val(c.x2);
+        $('#y2').val(c.y2);
+        $('#w').val(c.w);
+        $('#h').val(c.h);
+    }; 
+</script>
 }
