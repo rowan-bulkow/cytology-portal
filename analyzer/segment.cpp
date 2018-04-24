@@ -27,10 +27,6 @@ get boost on linux: https://stackoverflow.com/questions/12578499/how-to-install-
 
 compliation example: g++ -std=gnu++17 segment.cpp -l boost_program_options
 	Make sure to include the "-l boost_program_options" otherwise you will get errors that do not make sense and the program will not work
-
-
-
-
 */
 
 #include <iostream>
@@ -44,40 +40,38 @@ using namespace boost::program_options;
 int main (int argc, const char * argv[])
 {
     try
-  {
-    options_description desc{"Options"};
-    desc.add_options()
-      ("help,h", "Help screen")
-      ("maxVariation", value<float>()->default_value(0.5f), "MaxVariation")
-      ("minDiversity", value<float>()->default_value(0.25f), "MinDiversity")
-      ("minAreaThreshold", value<float>()->default_value(50.0f), "minAreaThreshold")
-      ("kernelsize", value<int>()->default_value(2), "Kernelsize")
-      ("maxdist", value<int>()->default_value(4), "Maxdist")
-      ("threshold1", value<int>()->default_value(20), "threshold1")
-      ("threshold2", value<int>()->default_value(40), "threshold2")
-      ("maxGmmIterations", value<int>()->default_value(10), "maxGmmIterations")
-      ("delta", value<int>()->default_value(0), "delta")
-      ("minArea", value<int>()->default_value(15), "minArea")
-      ("maxArea", value<int>()->default_value(100), "maxArea")
-      ("photo", value<std::string>()->default_value("cyto.tif"), "photo");
+    {
+        options_description desc{"Options"};
+        desc.add_options()
+          ("help,h", "Help screen")
+          ("maxVariation", value<float>()->default_value(0.5f), "MaxVariation")
+          ("minDiversity", value<float>()->default_value(0.25f), "MinDiversity")
+          ("minAreaThreshold", value<float>()->default_value(50.0f), "minAreaThreshold")
+          ("kernelsize", value<int>()->default_value(2), "Kernelsize")
+          ("maxdist", value<int>()->default_value(4), "Maxdist")
+          ("threshold1", value<int>()->default_value(20), "threshold1")
+          ("threshold2", value<int>()->default_value(40), "threshold2")
+          ("maxGmmIterations", value<int>()->default_value(10), "maxGmmIterations")
+          ("delta", value<int>()->default_value(0), "delta")
+          ("minArea", value<int>()->default_value(15), "minArea")
+          ("maxArea", value<int>()->default_value(100), "maxArea")
+          ("photo", value<std::string>()->default_value("cyto.tif"), "photo");
 
-    variables_map vm;
-    store(parse_command_line(argc, argv, desc), vm);
-    notify(vm);
+        variables_map vm;
+        store(parse_command_line(argc, argv, desc), vm);
+        notify(vm);
 
-  
-    segment::Segmenter seg = segment::Segmenter(vm["kernelsize"].as<int>(), vm["maxdist"].as<int>(), vm["threshold1"].as<int>(), 
-    	vm["threshold2"].as<int>(), vm["maxGmmIterations"].as<int>(), vm["minAreaThreshold"].as<float>(), vm["delta"].as<int>(),
-    	vm["minArea"].as<int>(), vm["maxArea"].as<int>(), vm["maxVariation"].as<float>(), vm["minDiversity"].as<float>());
 
-    seg.runSegmentation(vm["photo"].as<std::string>());
-    // seg.test();
+        segment::Segmenter seg = segment::Segmenter(vm["kernelsize"].as<int>(), vm["maxdist"].as<int>(), vm["threshold1"].as<int>(),
+        	vm["threshold2"].as<int>(), vm["maxGmmIterations"].as<int>(), vm["minAreaThreshold"].as<float>(), vm["delta"].as<int>(),
+        	vm["minArea"].as<int>(), vm["maxArea"].as<int>(), vm["maxVariation"].as<float>(), vm["minDiversity"].as<float>());
 
-  }
-  catch (const error &ex)
-  {
-    std::cerr << ex.what() << '\n';
-  }
+        seg.runSegmentation(vm["photo"].as<std::string>().c_str());
+        // seg.runSegmentation("../images/cyto13.tif");
+        // seg.test();
+    }
+    catch (const error &ex)
+    {
+      std::cerr << ex.what() << '\n';
+    }
 }
-
-

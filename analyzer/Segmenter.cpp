@@ -4,9 +4,9 @@
 #include "opencv2/opencv.hpp"
 #include "opencv2/features2d/features2d.hpp"
 #include "SegmenterTools.cpp"
-//extern "C" {
-//    #include "vl/quickshift.h"
-//}
+extern "C" {
+   #include "vl/quickshift.h"
+}
 
 using namespace std;
 
@@ -75,6 +75,14 @@ namespace segment
             double end;
 
             cv::Mat image = cv::imread(fileName);
+
+            // check for image
+            if(image.empty())
+            {
+                cerr << "Could not read image at: " << fileName << endl;
+                exit(1);
+            }
+
             cv::Mat outimg;
 
             // meta-data about the image
