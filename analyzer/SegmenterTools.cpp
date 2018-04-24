@@ -202,7 +202,8 @@ namespace segment
         {
             // opencv wants to find white object on a black background,
             // so we want to invert the labels before findContours
-            cv::bitwise_not(img, img);
+            // update: this was needed, now GMM outputs like this, can probably remove this at some point
+            // cv::bitwise_not(img, img);
 
             vector<vector<cv::Point> > contours;
             cv::findContours(img, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
