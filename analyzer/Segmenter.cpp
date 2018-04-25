@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "opencv2/opencv.hpp"
 #include "opencv2/features2d/features2d.hpp"
+#include "Clump.cpp"
 #include "SegmenterTools.cpp"
 extern "C" {
    #include "vl/quickshift.h"
@@ -24,14 +25,14 @@ namespace segment
         // GMM params
         int maxGmmIterations = 10;
         // GMM post processing params
-        double minAreaThreshold = 50.0;
+        double minAreaThreshold = 200.0;
         // MSER params
         int delta = 8, minArea = 15, maxArea = 100;
         double maxVariation = 0.5, minDiversity = 0.25;
 
     private:
         // internal attributes
-        bool debug = false;
+        bool debug = true;
         cv::Scalar pink;
         int allContours = -1;
         bool totalTimed = true;
@@ -39,12 +40,11 @@ namespace segment
     public:
         // Constructors
         Segmenter() { setCommonValues(); }
-        Segmenter(int kernelsize, int maxdist, int maxGmmIterations)
+        Segmenter(int kernelsize, int maxdist)
         {
             setCommonValues();
             this->kernelsize = kernelsize;
             this->maxdist = maxdist;
-            this->maxGmmIterations = maxGmmIterations;
         }
 
         Segmenter(int kernelsize, int maxdist, int thres1, int thres2,  int maxGmmIterations, int minAreaThreshold, int delta, int minArea, int maxArea, double maxVariation, double minDiversity)
@@ -113,7 +113,7 @@ namespace segment
             start = clock();
             if(debug) printf("Beginning Edge Detection...\n");
 
-            cv::Mat postEdgeDetection = segTools.runCanny(postQuickShift, threshold1, threshold2);
+            cv::Mat postEdgeDetection = segTools.runCanny(postQuickShift, threshold1, threshold2, true);
             cv::imwrite("../images/edgeDetectedEroded_cyto.png", postEdgeDetection);
 
             end = (clock() - start) / CLOCKS_PER_SEC;
@@ -134,6 +134,21 @@ namespace segment
             outimg.convertTo(outimg, CV_8UC3);
             cv::drawContours(outimg, contours, allContours, pink);
             cv::imwrite("../images/contours_cyto.png", outimg);
+
+
+            // TODO I think this is a good idea -- but at the moment the focus should
+            // be on individual cell segmentation, not improving clump segmentation
+            // cv::Mat preHulls = cv::Mat::zeros(height, width, CV_8U);
+            // cv::drawContours(preHulls, contours, allContours, cv::Scalar(255, 255, 255), CV_FILLED);
+            // cv::imwrite("../images/test_contoursfull.png", preHulls);
+            // cv::erode(preHulls, preHulls, cv::Mat());
+            // cv::imwrite("../images/test_contourseroded.png", preHulls);
+            // cv::findContours(preHulls, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+            // image.copyTo(outimg);
+            // outimg.convertTo(outimg, CV_8UC3);
+            // cv::drawContours(outimg, contours, allContours, pink);
+            // cv::imwrite("../images/test_erodedcontours_cyto.png", outimg);
+
 
             // find convex hulls
             vector<vector<cv::Point> > hulls(contours.size());
@@ -176,20 +191,36 @@ namespace segment
             cv::imwrite("../images/clumpBoundaries.png", outimg);
 
             // extract each clump from the original image
-            vector<cv::Mat> clumps = vector<cv::Mat>();
+            vector<Clump> clumps = vector<Clump>();
             for(unsigned int i=0; i<clumpBoundaries.size(); i++)
             {
-                cv::Mat clump = segTools.extractClump(image, clumpBoundaries, i);
+                Clump clump;
+                clump.imgptr = &image;
+                clump.contour = vector<cv::Point>(clumpBoundaries[i]);
+                clump.computeBoundingRect();
                 clumps.push_back(clump);
 
-                char buffer[200];
-                sprintf(buffer, "../images/clumps/clump_%i.png", i);
-                clump.convertTo(outimg, CV_8UC3);
-                cv::imwrite(buffer, outimg);
+                // char buffer[200];
+                // sprintf(buffer, "../images/clumps/clump_%i.png", i);
+                // clump.extract().convertTo(outimg, CV_8UC3);
+                // cv::imwrite(buffer, outimg);
             }
 
             end = (clock() - start) / CLOCKS_PER_SEC;
             if(debug) printf("Finished GMM post processing, clumps found:%i, time:%f\n", numClumps, end);
+
+
+            // clump extraction testing
+            if(false)
+            {
+                for(unsigned int i=0; i<clumps.size(); i++)
+                {
+                    cv::Mat clump = clumps[i].extractFull(true);
+                    char buffer[200];
+                    sprintf(buffer, "../images/clumps/clump_%i_full.png", i);
+                    cv::imwrite(buffer, clump);
+                }
+            }
 
 
             // ***** ***** ***** ***** ***** ***** ***** ***** ***** ***** //
@@ -198,18 +229,44 @@ namespace segment
             start = clock();
             if(debug) printf("Beginning MSER nuclei detection...\n");
 
-            // this is getting a little ridiculous - should probably define a custom data type
-            vector<vector<vector<cv::Point> > > nucleiBoundaries = vector<vector<vector<cv::Point> > >();
             for(unsigned int i=0; i<clumps.size(); i++)
             {
-                vector<vector<cv::Point> > regions = segTools.runMser(clumps[i], delta, minArea, maxArea, maxVariation, minDiversity);
-                nucleiBoundaries.push_back(regions);
-                clumps[i].convertTo(outimg, CV_8UC3);
-                cv::drawContours(outimg, regions, -1, cv::Scalar(255, 0, 255), 1);
+                cv::Mat clump = clumps[i].extract();
+                clumps[i].nucleiBoundaries = segTools.runMser(clump, clumps[i].computeOffsetContour(),
+                    delta, minArea, maxArea, maxVariation, minDiversity);
+            }
+
+            // remove clumps that don't have any nuclei
+            int tempindex = 0;
+            unsigned int numchecked = 0;
+            unsigned int originalsize = clumps.size();
+            while(clumps.size() > 0 && numchecked<originalsize)
+            {
+                if(clumps[tempindex].nucleiBoundaries.empty())
+                {
+                    clumps.erase(clumps.begin()+tempindex);
+                    tempindex--;
+                }
+                tempindex++;
+                numchecked++;
+            }
+
+            // write all the found clumps with nuclei
+            for(unsigned int i=0; i<clumps.size(); i++)
+            {
+                cv::Mat clump = clumps[i].extract();
                 char buffer[200];
+
+                clump.convertTo(outimg, CV_8UC3);
+                sprintf(buffer, "../images/clumps/clump_%i.png", i);
+                cv::imwrite(buffer, outimg);
+
+                clump.convertTo(outimg, CV_8UC3);
+                cv::drawContours(outimg, clumps[i].nucleiBoundaries, allContours, pink);
                 sprintf(buffer, "../images/clumps/clump_%i_nuclei.png", i);
                 cv::imwrite(buffer, outimg);
             }
+
             end = (clock() - start) / CLOCKS_PER_SEC;
             if(debug) printf("Finished MSER nuclei detection, time:%f\n", end);
 
