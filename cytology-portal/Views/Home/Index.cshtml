@@ -6,11 +6,11 @@
 <div class="container col-md-offset-4">
 @using (Html.BeginForm("SaveImage", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
 {
-    <div class="col-md-3">
-        <input type="file" name="file" />
+    <div class="col-md-5">
+        <input class="btn btn-primary" type="file" name="file" />
     </div>
-    <div class="col-md-3">
-        <input type="submit" value="Upload" />
+    <div class="col-md-2">
+        <input class="btn btn-primary" type="submit" value="Upload" />
     </div>
 }
 </div>
@@ -21,7 +21,7 @@
     {
         <div class="col-md-offset-1">
         @Html.DropDownListFor(y => y.Filename, Model.ImageNames)
-        <input type="submit" value="Choose" />
+        <input class="btn btn-primary" type="submit" value="Choose" />
         </div>
         <br />
         if (Model.ImagePath != "" && Model.ImagePath != null)
@@ -62,7 +62,7 @@
         </div>*@
     </div>
     <br />
-    <input class="col-md-offset-5" type="submit" value="Segment Image" />
+    <input class="col-md-offset-5 btn btn-primary" type="submit" value="Segment Image" />
 } 
 </div>
  
