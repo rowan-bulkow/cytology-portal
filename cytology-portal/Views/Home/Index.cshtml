@@ -3,7 +3,7 @@
     ViewBag.Title = "Home Page";
 }
 <br /><br />
-<div class="container">
+<div class="container col-md-offset-4">
 @using (Html.BeginForm("SaveImage", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
 {
     <div class="col-md-3">
@@ -15,81 +15,59 @@
 }
 </div>
 <br /><br /><br />
-<div>
+<div  >
+    <div class="col-md-offset-4">
+    @using (Html.BeginForm("DisplayThumbnail", "Home"))
+    {
+        <div class="col-md-offset-1">
+        @Html.DropDownListFor(y => y.Filename, Model.ImageNames)
+        <input type="submit" value="Choose" />
+        </div>
+        <br />
+        if (Model.ImagePath != "" && Model.ImagePath != null)
+        {
+            <img id="thumbnail" src="@Model.ImagePath" alt="Sample Image" width="360px" />
+        }
+        <br />
+    }
+    </div>
+
 @using (Html.BeginForm("SegmentImage", "Home"))
 {
-    @Html.DropDownListFor(y => y.Filename, Model.ImageNames)
+    @Html.HiddenFor(y => y.Filename)
     <div class="row">
-        <div class="col-md-2">
+        <div class="col-md-1 col-md-offset-4" >
             <span>X Position</span>
-            @Html.TextBoxFor(y => y.X, new { id = "x"})
+            @Html.TextBoxFor(y => y.X, new { id = "x" , style = "width:50px" })
         </div>
-        <div class="col-md-2">
+        <div class="col-md-1">
             <span>Y Position</span>
-            @Html.TextBoxFor(y => y.Y, new { id = "y" })
+            @Html.TextBoxFor(y => y.Y, new { id = "y", style = "width:50px" })
         </div>
-        <div class="col-md-2">
+        <div class="col-md-1">
             <span>Height</span>
-            @Html.TextBoxFor(y => y.Height, new { id = "h" })
+            @Html.TextBoxFor(y => y.Height, new { id = "h", style = "width:50px" })
         </div>
-        <div class="col-md-2">
+        <div class="col-md-1">
             <span>Width</span>
-            @Html.TextBoxFor(y => y.Width, new { id = "w" })
+            @Html.TextBoxFor(y => y.Width, new { id = "w", style = "width:50px" })
         </div>
-        <div class="col-md-2">
+        @*<div class="col-md-2">
             <span>Clustering</span>
             @Html.TextBoxFor(y => y.ClusteringThreshold)
         </div>
         <div class="col-md-2">
             <span>Smoothing</span>
             @Html.TextBoxFor(y => y.SmoothingThreshold)
-        </div>
+        </div>*@
     </div>
-    <input type="submit" value="Segment" />
-}
-    <br /><br />
-    @using (Html.BeginForm("SplitTiff", "Home"))
-    {
-        @Html.DropDownListFor(y => y.Filename, Model.ImageNames)
-        <input type="submit" value="Split Tiff Image" />
-    }
-</div>
-
-
-@*<br /><br /><br /><br />
-@{  var imagePath = "";
-    if (Request["Filename"] != null)
-    {
-        imagePath = "/Content/Images/" + Request["Filename"];
-    }
+    <br />
+    <input class="col-md-offset-5" type="submit" value="Segment Image" />
 } 
-<form method="post" action="">
-    <div>
-        I want to see:
-        @Html.DropDownListFor(y => y.Filename, Model.ImageNames, new {name = "photoChoice" })
-        &nbsp;
-        <input type="submit" value="Submit" />
-    </div>
-    <div style="padding:10px;">
-        @if (imagePath != "" && imagePath != null)
-        {
-            <img src="@imagePath" alt="Sample Image" width="300px" />
-        }
-    </div>
-</form>*@
-
-
-<br /><br />
-
-@using (Html.BeginForm("DisplayThumbnail", "Home"))
-{
-    @Html.DropDownListFor(y => y.Filename, Model.ImageNames)
-    <input type="submit" value="Choose" />
-    if (Model.ImagePath != "" && Model.ImagePath != null)
-    {
-    <img id="thumbnail" src="@Model.ImagePath" alt="Sample Image" width="300px" />
-    } 
-}
+</div>
+ 
+ 
+ 
 
 
 @section Scripts {
