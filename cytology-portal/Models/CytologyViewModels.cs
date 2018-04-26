@@ -12,6 +12,7 @@ namespace cytology_portal.Models
         public int Height { get; set; }
         public int Width { get; set; }
         public string Filename { get; set; }
+        public string ImagePath { get; set; }
         public SelectList ImageNames { get; set; } 
     }
 }

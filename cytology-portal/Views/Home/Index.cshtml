@@ -3,54 +3,91 @@
     ViewBag.Title = "Home Page";
 }
 <br /><br />
-<div class="container">
+<div class="container col-md-offset-4">
 @using (Html.BeginForm("SaveImage", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
 {
-    <div class="col-md-3">
-        <input type="file" name="file" />
+    <div class="col-md-5">
+        <input class="btn btn-primary" type="file" name="file" />
     </div>
-    <div class="col-md-3">
-        <input type="submit" value="Upload" />
+    <div class="col-md-2">
+        <input class="btn btn-primary" type="submit" value="Upload" />
     </div>
 }
 </div>
 <br /><br /><br />
-<div>
+<div  >
+    <div class="col-md-offset-4">
+    @using (Html.BeginForm("DisplayThumbnail", "Home"))
+    {
+        <div class="col-md-offset-1">
+        @Html.DropDownListFor(y => y.Filename, Model.ImageNames)
+        <input class="btn btn-primary" type="submit" value="Choose" />
+        </div>
+        <br />
+        if (Model.ImagePath != "" && Model.ImagePath != null)
+        {
+            <img id="thumbnail" src="@Model.ImagePath" alt="Sample Image" width="360px" />
+        }
+        <br />
+    }
+    </div>
+
 @using (Html.BeginForm("SegmentImage", "Home"))
 {
-    @Html.DropDownListFor(y => y.Filename, Model.ImageNames)
+    @Html.HiddenFor(y => y.Filename)
     <div class="row">
-        <div class="col-md-2">
+        <div class="col-md-1 col-md-offset-4" >
             <span>X Position</span>
-            @Html.TextBoxFor(y => y.X)
+            @Html.TextBoxFor(y => y.X, new { id = "x" , style = "width:50px" })
         </div>
-        <div class="col-md-2">
+        <div class="col-md-1">
             <span>Y Position</span>
-            @Html.TextBoxFor(y => y.Y)
+            @Html.TextBoxFor(y => y.Y, new { id = "y", style = "width:50px" })
         </div>
-        <div class="col-md-2">
+        <div class="col-md-1">
             <span>Height</span>
-            @Html.TextBoxFor(y => y.Height)
+            @Html.TextBoxFor(y => y.Height, new { id = "h", style = "width:50px" })
         </div>
-        <div class="col-md-2">
+        <div class="col-md-1">
             <span>Width</span>
-            @Html.TextBoxFor(y => y.Width)
+            @Html.TextBoxFor(y => y.Width, new { id = "w", style = "width:50px" })
         </div>
-        <div class="col-md-2">
+        @*<div class="col-md-2">
             <span>Clustering</span>
             @Html.TextBoxFor(y => y.ClusteringThreshold)
         </div>
         <div class="col-md-2">
             <span>Smoothing</span>
             @Html.TextBoxFor(y => y.SmoothingThreshold)
-        </div>
+        </div>*@
     </div>
-    <input type="submit" value="Segment" />
-}
-    <br /><br />
-    @using (Html.BeginForm("SplitTiff", "Home"))
-    {
-        @Html.DropDownListFor(y => y.Filename, Model.ImageNames)
-        <input type="submit" value="Split Tiff Image" />
-    }
+    <br />
+    <input class="col-md-offset-5 btn btn-primary" type="submit" value="Segment Image" />
+} 
 </div>
+ 
+ 
+ 
+
+
+@section Scripts {
+    @Scripts.Render("~/Scripts/jquery-1.10.2.min.js")
+    @Scripts.Render("~/Scripts/jquery.Jcrop.min.js") 
+<script language="Javascript">
+    jQuery(function($) {
+        $('#thumbnail').Jcrop({
+            onChange: showCoords,
+            onSelect: showCoords
+        });
+    });
+
+    function showCoords(c) {
+        $('#x').val(c.x);
+        $('#y').val(c.y);
+        $('#x2').val(c.x2);
+        $('#y2').val(c.y2);
+        $('#w').val(c.w);
+        $('#h').val(c.h);
+    }; 
+</script>
+}

@@ -16,14 +16,19 @@ namespace cytology_portal.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public ActionResult Index(string imagePath = "", string filename = "")
         {
             cytology_portal.Models.CytologyViewModel model = new cytology_portal.Models.CytologyViewModel();
+            model.Filename = filename;
             string projectDirectory = Path.GetDirectoryName(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile);
             string[] files = Directory.GetFiles(projectDirectory + "/Content/Images/");
+            for (int i = 0; i < files.Length; i++)
+            {
+                files[i] = Path.GetFileName(files[i]);
+            }
             files.ToList();
             model.ImageNames = new SelectList(files);
-            
+            model.ImagePath = imagePath;
             return View(model);
         }
 
@@ -48,9 +53,7 @@ namespace cytology_portal.Controllers
             {
                 string test = file.ContentType;
                 string test2 = file.ContentType.FirstOrDefault().ToString();
-                var originalFilename = Path.GetFileName(file?.FileName);
-                //string fileId = Guid.NewGuid().ToString().Replace("-", "");
-                //fileId = originalFilename + fileId;
+                var originalFilename = Path.GetFileName(file?.FileName); 
                 var path = Path.Combine(Server.MapPath("~/Content/Images/"), originalFilename);
                 file.SaveAs(path);
                 
@@ -58,245 +61,56 @@ namespace cytology_portal.Controllers
             }
             return RedirectToAction("Index"); 
         }
-         
-        public ActionResult SegmentImage(cytology_portal.Models.CytologyViewModel model)
+
+        
+
+        public ActionResult DisplayThumbnail(cytology_portal.Models.CytologyViewModel model)
         {
-            //          myBitmap = new Bitmap(@"C:\Documents and   
-            //Settings\Joe\Pics\myPic.bmp");
-            //         Graphics g = Graphics.FromImage(myBitmap);
-            string projectDirectory = Path.GetDirectoryName(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile);
-            //Image img = Image.FromFile(projectDirectory + "/Content/Images/image3.png");
-            //Graphics g = Graphics.FromImage(img);
-            //g.DrawImage(img, 500, 500);
-            var filename = Path.GetFileName(model.Filename);
-            var path = Path.Combine(Server.MapPath("~/Content/Images/"), "Seg" + filename);
-            //Image img = Image.FromFile(projectDirectory + "/Content/Images/" + filename);
-            //img.Save(path);
-
-            //string[] arguments =
-            //{
-            //    @"Sample Data\multipage.tif,1",
-            //    "SplitTiffImage_2ndPage.tif"
-            //};
-
-            //TiffCP.Program.Main(arguments);
-            //BitMiracle.
-            //System.Diagnostics.Process.Start("SplitTiffImage_2ndPage.tif");
-
-            //List<byte[]> paginatedData = new List<byte[]>();
-            //using (Image img = Image.FromFile(model.Filename))
-            //{
-            //    paginatedData.Clear();
-            //    int frameCount = img.GetFrameCount(FrameDimension.Page);
-            //    for (int i = 0; i < frameCount; i++)
-            //    {
-            //        img.SelectActiveFrame(new FrameDimension(img.FrameDimensionsList[0]), i);
-            //        using (MemoryStream memstr = new MemoryStream())
-            //        {
-            //            img.Save(memstr, ImageFormat.Tiff);
-            //            paginatedData.Add(memstr.ToArray());
-            //        }
-            //    }
-            //}
-
-
-
-
-            //using (Tiff image = Tiff.Open(model.Filename, "r"))
-            //{
-            //    if (image == null)
-            //        return null;
-
-            //    int dircount = 0;
-            //    do
-            //    {
-            //        var path2 = Path.Combine(Server.MapPath("~/Content/Images/"), dircount + filename);
-            //        Tiff image2 = Tiff.Open(path2, "w");
-            //        dircount++;
-            //    } while (image.ReadDirectory());
-
-            //    System.Console.Out.WriteLine("{0} directories", dircount);
-            //}
-
-
-            //using (Tiff tif = Tiff.Open(model.Filename, "r"))
-            //{
-            //    short maxDirIndex = 0;
-            //    int maxW = 0;
-            //    int maxL = 0;
-            //    do
-            //    {
-            //        FieldValue[] imageLength = tif.GetField(TiffTag.IMAGELENGTH);
-            //        int  length1 = imageLength[0].ToInt();
-            //        FieldValue[] imageWidth = tif.GetField(TiffTag.IMAGEWIDTH);
-            //        int width1 = imageWidth[0].ToInt();
-            //        if (length1 * width1 > maxL * maxW)
-            //        {
-            //            maxW = width1;
-            //            maxL = length1;
-            //            maxDirIndex = tif.CurrentDirectory();
-            //        }
-            //    } while (tif.ReadDirectory());
-            //    tif.SetDirectory(maxDirIndex);
-            //    // Find the width and height of the image
-            //    FieldValue[] value = tif.GetField(TiffTag.IMAGEWIDTH);
-            //    int width = value[0].ToInt();
-
-            //    value = tif.GetField(TiffTag.IMAGELENGTH);
-            //    int height = value[0].ToInt();
-
-
-
-            //    // Read the image into the memory buffer 
-            //    int[] raster = new int[height * width];
-            //    if (!tif.ReadRGBAImage(width, height, raster))
-            //    { 
-            //        return null;
-            //    }
-
-            //    using (Bitmap bmp = new Bitmap(width, height, PixelFormat.Format32bppRgb))
-            //    {
-            //        Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
-
-            //        BitmapData bmpdata = bmp.LockBits(rect, ImageLockMode.ReadWrite, PixelFormat.Format32bppRgb);
-            //        byte[] bits = new byte[bmpdata.Stride * bmpdata.Height];
-
-            //        for (int y = 0; y < bmp.Height; y++)
-            //        {
-            //            int rasterOffset = y * bmp.Width;
-            //            int bitsOffset = (bmp.Height - y - 1) * bmpdata.Stride;
-
-            //            for (int x = 0; x < bmp.Width; x++)
-            //            {
-            //                int rgba = raster[rasterOffset++];
-            //                bits[bitsOffset++] = (byte)((rgba >> 16) & 0xff);
-            //                bits[bitsOffset++] = (byte)((rgba >> 8) & 0xff);
-            //                bits[bitsOffset++] = (byte)(rgba & 0xff);
-            //                bits[bitsOffset++] = (byte)((rgba >> 24) & 0xff);
-            //            }
-            //        }
-
-            //        System.Runtime.InteropServices.Marshal.Copy(bits, 0, bmpdata.Scan0, bits.Length);
-            //        bmp.UnlockBits(bmpdata);
-            //        var path3 = Path.Combine(Server.MapPath("~/Content/Images/"), "TiffTo32BitBitmapcyto.bmp");
-            //        bmp.Save(path3);
-            //        System.Diagnostics.Process.Start(path3);
-            //    }
-            //}
-
-
-            
-            //Stream imageStreamSource = new FileStream(model.Filename, FileMode.Open, FileAccess.Read, FileShare.Read);
-            //TiffBitmapDecoder decoder = new TiffBitmapDecoder(imageStreamSource, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
-            //int pagecount = decoder.Frames.Count;
-            //if (pagecount > 1)
-            //{
-            //    string fNameBase = Path.GetFileNameWithoutExtension("filename");
-            //    string filePath = Path.GetDirectoryName("filename");
-            //    for (int i = 0; i < pagecount; i++)
-            //    {
-            //        //string outputName = string.Format(@"{0}\SplitImages\{1}-{2}.tif", filePath, fNameBase, i.ToString());
-            //        var path5 = Path.Combine(Server.MapPath("~/Content/Images/"), "newpage_" + pagecount + ".tif");
-            //        FileStream stream = new FileStream(path5, FileMode.Create, FileAccess.Write);
-            //        TiffBitmapEncoder encoder = new TiffBitmapEncoder();
-            //        encoder.Frames.Add(decoder.Frames[i]);
-            //        encoder.Save(stream);
-            //        stream.Dispose();
-            //    }
-            //    imageStreamSource.Dispose();
-            //}
-
-
-
-            //int activePage;
-            //int pages;
-
-
-            ////Image image3 = Image.FromFile(model.Filename);
-
-            ////pages = image3.GetFrameCount(FrameDimension.Page);
-            ////image3.Dispose();
-            //using (Image image2 = Image.FromFile(model.Filename))
-            //{
-            //    pages = image2.GetFrameCount(FrameDimension.Page);
-            //    for (int index = 0; index < pages; index++)
-            //    {
-            //        if (index == 2)
-            //        {
-            //            continue;
-            //        }
-            //        activePage = index + 1;
-            //        image2.SelectActiveFrame(FrameDimension.Page, index);
-            //        var path5 = Path.Combine(Server.MapPath("~/Content/Images/"), "page_" + activePage.ToString() + ".tif");
-            //        image2.Save(path5);
-            //    }
-            //}
-
-
-
-            using (MagickImage image = new MagickImage(model.Filename))
-            {
-
-                //image.RePage();
-                image.Crop(model.X, model.Y, model.Width, model.Height);
-                image.Segment(ColorSpace.Lab, model.ClusteringThreshold, model.SmoothingThreshold);
-                var fileinfo = new FileInfo(path);
-                image.Write(fileinfo);
-                //var originalFilename = Path.GetFileName(model.Filename);
-                //var path = Path.Combine(Server.MapPath("~/Content/Images/"), originalFilename);
-            }
-            //using (Mat image = new Mat(projectDirectory + "/Content/Images/image3.png"))
-            //{
-            //    using (Window window = new Window(image))
-            //    {
-            //        Window.WaitKey();
-            //    }
-            //}
-
-
-            //string[] files = Directory.GetFiles(projectDirectory + "/Content/Images/");
-            //foreach(var s in files)
-            //{
-            //    var name = Path.GetFileName(s.ToString());
-            //}
-            //Image.FromFile
-            //    System.IO.i
-
-
-
-            return RedirectToAction("Index");
-        }
-
-
-
-        public ActionResult SplitTiff(cytology_portal.Models.CytologyViewModel model)
-        {
-
-            int activePage;
             int pages;
+            var imagePath = "";
 
-            using (Image image2 = Image.FromFile(model.Filename))
+            var originalFilename = Path.GetFileName(model.Filename);
+            var path = Path.Combine(Server.MapPath("~/Content/Images/"), originalFilename);
+            var thumbPath = Path.Combine(Server.MapPath("~/Content/Images/thumbs/"), Path.GetFileNameWithoutExtension(model.Filename) + ".png");
+
+            if (System.IO.File.Exists(thumbPath))
             {
-                pages = image2.GetFrameCount(FrameDimension.Page);
-                if (pages > 1)
+                imagePath = "./Content/Images/thumbs/" + Path.GetFileNameWithoutExtension(model.Filename) + ".png";
+            }
+            else
+            {
+                using (Image image2 = Image.FromFile(path))
                 {
-                    for (int index = 0; index < pages; index++)
+                    pages = image2.GetFrameCount(FrameDimension.Page);
+                    if (pages > 1)
                     {
-                        if (index == 2)
-                        {
-                            continue;
-                        }
-                        activePage = index + 1;
-                        image2.SelectActiveFrame(FrameDimension.Page, index);
-                        var path5 = Path.Combine(Server.MapPath("~/Content/Images/"), "page_" + activePage.ToString() + ".tif");
-                        image2.Save(path5);
+                        image2.SelectActiveFrame(FrameDimension.Page, 1);
                     }
+                    imagePath = "./Content/Images/thumbs/" + Path.GetFileNameWithoutExtension(model.Filename) + ".png";
+                    var thumbnail = image2.GetThumbnailImage(300, 300, null, IntPtr.Zero);
+                    thumbnail.Save(thumbPath, ImageFormat.Png);
                 }
             }
-            return RedirectToAction("Index");
+            return RedirectToAction("Index", "Home", new { imagePath = imagePath , filename = model.Filename });
+
         }
 
+        public ActionResult SegmentImage(cytology_portal.Models.CytologyViewModel model)
+        { 
+            //Integrate with c++ code for this task
 
-
+            //string projectDirectory = Path.GetDirectoryName(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile); 
+            //var filename = Path.GetFileName(model.Filename);
+            //var path = Path.Combine(Server.MapPath("~/Content/Images/results/"), "Seg" + filename); 
+              
+            //using (MagickImage image = new MagickImage("~/Content/Images/" + model.Filename))
+            //{ 
+            //    image.Crop(model.X, model.Y, model.Width, model.Height); 
+            //    var fileinfo = new FileInfo(path);
+            //    image.Write(fileinfo); 
+            //}  
+            return RedirectToAction("Index");
+        }
+        
     }
 }
