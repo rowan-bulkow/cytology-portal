@@ -66,8 +66,46 @@
 } 
 </div>
  
- 
- 
+
+@*@*Histogram*@@*
+@if (Model.Histogram != null)
+{
+    
+ <head> 
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body> 
+    <div class="col-md-5">
+        <h1>Normalized Histogram of Nuclei Sizes</h1>
+    </div>
+    <div id="myDiv"></div>
+    <script>
+        var x = [];
+        var histogram = @Html.Raw(Json.Encode(Model.Histogram));
+        //for (var i = 0; i < 500; i++) {
+        //    x[i] = Math.random();
+        //}
+
+        var data = [
+            {
+                x: histogram,
+                type: 'histogram',
+                histnorm: 'probability',
+                marker: {
+                    color: 'rgb(255,255,100)',
+                },
+            }
+        ];
+        Plotly.newPlot('myDiv', data);
+    </script>
+</body>
+<br />
+<div class="col-md-5">
+    <h3>Normalized Histogram of Nuclei Sizes</h3>
+</div>
+    
+}*@
+
 
 
 @section Scripts {

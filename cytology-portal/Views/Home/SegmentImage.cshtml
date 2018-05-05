@@ -1,0 +1,37 @@
+﻿@model cytology_portal.Models.CytologyViewModel
+@*Histogram*@
+@if (Model.Histogram != null)
+{
+
+    <head>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    </head>
+    <body>
+        <br /> 
+        <div class="col-md-12">
+            <h2 class="text-center">Normalized Histogram of Nuclei Pixel Sizes</h2>
+        </div>
+        <br /> <br /> <br /> 
+        <div id="myDiv"></div>
+        <script>
+        var x = [];
+        var histogram = @Html.Raw(Json.Encode(Model.Histogram));
+        //for (var i = 0; i < 500; i++) {
+        //    x[i] = Math.random();
+        //}
+
+        var data = [
+            {
+                x: histogram,
+                type: 'histogram',
+                histnorm: 'probability',
+                marker: {
+                    color: 'rgb(255,255,100)',
+                },
+            }
+        ];
+        Plotly.newPlot('myDiv', data);
+        </script>
+    </body> 
+
+}

@@ -14,5 +14,6 @@ namespace cytology_portal.Models
         public string Filename { get; set; }
         public string ImagePath { get; set; }
         public SelectList ImageNames { get; set; } 
+        public int[] Histogram { get; set; }
     }
 }
