@@ -348,7 +348,6 @@
     <Folder Include="App_Data\" />
     <Folder Include="Content\Images\results\" />
     <Folder Include="Content\Images\thumbs\" />
-    <Folder Include="images\" />
     <Folder Include="NewFolder1\" />
   </ItemGroup>
   <ItemGroup>

@@ -128,7 +128,7 @@ namespace cytology_portal.Controllers
             System.Diagnostics.ProcessStartInfo startInfo1 = new System.Diagnostics.ProcessStartInfo();
             startInfo1.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
             startInfo1.FileName = "C:/Windows/System32/cmd.exe";
-            startInfo1.Arguments = "/C C:/ImageMagick-7.0.7-Q16/magick.exe convert -define registry:temporary-path=./Content/Images/ -extract "+ newWidth + "x" + newHeight + "+" + newX + "+" + newY + " ./Content/Images/" + model.Filename + "[2] ./images/" + newFileName + ".tif";
+            startInfo1.Arguments = "/C C:/ImageMagick-7.0.7-Q16/magick.exe convert -define registry:temporary-path=./Content/Images/ -extract "+ newWidth + "x" + newHeight + "+" + newX + "+" + newY + " ./Content/Images/" + model.Filename + "[2] ../images/" + newFileName + ".tif";
             cropProcess.StartInfo = startInfo1;
             cropProcess.Start();
             cropProcess.WaitForExit();
@@ -138,7 +138,7 @@ namespace cytology_portal.Controllers
             System.Diagnostics.ProcessStartInfo startInfo2 = new System.Diagnostics.ProcessStartInfo();
             startInfo2.WindowStyle = System.Diagnostics.ProcessWindowStyle.Normal;
             startInfo2.FileName = "cmd.exe";
-            startInfo2.Arguments = "/c ./analyzer/segment -p ./images/" + newFileName + ".tif";
+            startInfo2.Arguments = "/c ../analyzer/segment -p ../images/" + newFileName + ".tif";
             segmentProcess.StartInfo = startInfo2;
             segmentProcess.Start();
             segmentProcess.WaitForExit();
@@ -146,7 +146,7 @@ namespace cytology_portal.Controllers
             //read histogram data generated from segmentation code
             string line;
             List<int> nucleiSizeList = new List<int>();
-            DirectoryInfo dirInfo = new DirectoryInfo("C:/Users/Joshua/source/repos/cytology-portal/cytology-portal/analyzer/");
+            DirectoryInfo dirInfo = new DirectoryInfo("C:/Users/Joshua/source/repos/cytology-portal/analyzer/");
             FileInfo histogramFile = dirInfo.GetFiles("*.txt").OrderByDescending(f => f.LastWriteTime).First();
             System.IO.StreamReader file = new System.IO.StreamReader(histogramFile.FullName);
             while ((line = file.ReadLine()) != null)

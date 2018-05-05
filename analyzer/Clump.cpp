@@ -1,4 +1,6 @@
+#include <stdlib.h>
 #include "opencv2/opencv.hpp"
+#include "Cell.cpp"
 
 using namespace std;
 
@@ -11,15 +13,21 @@ namespace segment
     public:
         // attributes
         cv::Mat* imgptr;
+        cv::Mat clumpMat;
         vector<cv::Point> contour;
         vector<cv::Point> offsetContour;
         cv::Rect boundingRect;
         vector<vector<cv::Point> > nucleiBoundaries;
         vector<cv::Point> nucleiCenters;
+        cv::Mat nucleiAssocs;
+        unsigned int numCells;
+        vector<Cell> cells;
 
         // member functions
         // Given that imgptr and contour are defined, compute the bounding rect
         cv::Rect computeBoundingRect();
+        // Given the contour and bounding rect are defined, find the contour offset
+        // by the bounding rect
         vector<cv::Point> computeOffsetContour();
         // Mask the clump from the original image, return the result
         cv::Mat extractFull(bool showBoundary=false);
@@ -79,13 +87,29 @@ namespace segment
         cv::Mat clump = cv::Mat(img, this->boundingRect);
         if(showBoundary)
             cv::drawContours(clump, vector<vector<cv::Point> >(1, this->contour), 0, cv::Scalar(255, 0, 255));
-        return clump;
+        this->clumpMat = clump;
+        return this->clumpMat;
     }
 
     // If nucleiBoundaries are defined, compute the center of each nuclei
     vector<cv::Point> Clump::computeCenters()
     {
-        // TODO stubbed method
-        return vector<cv::Point>();
+        if(this->nucleiBoundaries.empty())
+            cerr << "nucleiBoundaries must be defined and present before Clump::computeCenters() can be run." << "\n";
+        this->nucleiCenters.clear();
+        for(vector<cv::Point> nucleus : nucleiBoundaries)
+        {
+            double sumX = 0.0, sumY = 0.0;
+            int count = 0;
+            for(cv::Point p : nucleus)
+            {
+                sumX += p.x;
+                sumY += p.y;
+                count++;
+            }
+            this->nucleiCenters.push_back(cv::Point(sumX/count, sumY/count));
+        }
+
+        return this->nucleiCenters;
     }
 }
