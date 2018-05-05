@@ -20,7 +20,7 @@ namespace segment
 
     cv::Vec3b Cell::generateColor()
     {
-        this->color = cv::Vec3b(rand()%255, rand()%255, rand()%255);
+        this->color = cv::Vec3b(rand()%150+50, rand()%150+50, rand()%150+50);
         return this->color;
     }
 
