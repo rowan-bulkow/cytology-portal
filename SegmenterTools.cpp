@@ -97,7 +97,7 @@ namespace segment
 
             cv::Mat gray;
             img.convertTo(gray, CV_8UC3);
-            cv::cvtColor(gray, gray, CV_BGR2GRAY);
+            cv::cvtColor(gray, gray, cv::COLOR_BGR2GRAY);
             gray.convertTo(gray, CV_64FC1);
 
             // create initial probabilities based on convex hulls
@@ -180,7 +180,7 @@ namespace segment
             cv::Ptr<cv::MSER> ms = cv::MSER::create(delta, minArea, maxArea, maxVariation, minDiversity);
             cv::Mat tmp;
             img.convertTo(tmp, CV_8U);
-            cv::cvtColor(tmp, tmp, CV_BGR2GRAY);
+            cv::cvtColor(tmp, tmp, cv::COLOR_BGR2GRAY);
             vector<vector<cv::Point> > regions;
             vector<cv::Rect> mser_bbox;
 
@@ -230,7 +230,7 @@ namespace segment
             // cv::bitwise_not(img, img);
 
             vector<vector<cv::Point> > contours;
-            cv::findContours(img, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+            cv::findContours(img, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
             vector<vector<cv::Point> > clumpBoundaries = vector<vector<cv::Point> >();
             for(unsigned int i=0; i<contours.size(); i++)
             {
@@ -262,7 +262,7 @@ namespace segment
         {
             // create a mask for each clump and apply it
             cv::Mat mask = cv::Mat::zeros(img.rows, img.cols, CV_8U);
-            cv::drawContours(mask, clumpBoundaries, clumpIndex, cv::Scalar(255), CV_FILLED);
+            cv::drawContours(mask, clumpBoundaries, clumpIndex, cv::Scalar(255), cv::FILLED);
             cv::Mat fullMasked = cv::Mat(img.rows, img.cols, CV_8U);
             fullMasked.setTo(cv::Scalar(255, 0, 255));
             img.copyTo(fullMasked, mask);

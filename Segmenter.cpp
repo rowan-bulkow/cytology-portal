@@ -102,7 +102,7 @@ namespace segment
             if(debug) printf("Beginning quickshift...\n");
 
             cv::Mat postQuickShift = segTools.runQuickshift(image, kernelsize, maxdist);
-            cv::imwrite("../images/quickshifted_cyto.png", postQuickShift);
+            cv::imwrite("images/quickshifted_cyto.png", postQuickShift);
 
             end = (clock() - start) / CLOCKS_PER_SEC;
             if(debug) printf("Quickshift complete, time:%f\n", end);
@@ -115,7 +115,7 @@ namespace segment
             if(debug) printf("Beginning Edge Detection...\n");
 
             cv::Mat postEdgeDetection = segTools.runCanny(postQuickShift, threshold1, threshold2, true);
-            cv::imwrite("../images/edgeDetectedEroded_cyto.png", postEdgeDetection);
+            cv::imwrite("images/edgeDetectedEroded_cyto.png", postEdgeDetection);
 
             end = (clock() - start) / CLOCKS_PER_SEC;
             if(debug) printf("Edge Detection complete, time: %f\n", end);
@@ -129,12 +129,12 @@ namespace segment
 
             // find contours
             vector<vector<cv::Point> > contours;
-            cv::findContours(postEdgeDetection, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+            cv::findContours(postEdgeDetection, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 
             image.copyTo(outimg);
             outimg.convertTo(outimg, CV_8UC3);
             cv::drawContours(outimg, contours, allContours, pink);
-            cv::imwrite("../images/contours_cyto.png", outimg);
+            cv::imwrite("images/contours_cyto.png", outimg);
 
 
             // TODO I think this is a good idea -- but at the moment the focus should
@@ -159,7 +159,7 @@ namespace segment
             image.copyTo(outimg);
             outimg.convertTo(outimg, CV_8UC3);
             cv::drawContours(outimg, hulls, allContours, pink);
-            cv::imwrite("../images/hulls_cyto.png", outimg);
+            cv::imwrite("images/hulls_cyto.png", outimg);
 
             end = (clock() - start) / CLOCKS_PER_SEC;
             if(debug) printf("Finished with CCA and convex hulls, time: %f\n", end);
@@ -173,7 +173,7 @@ namespace segment
 
             cv::Mat gmmPredictions = segTools.runGmm(image, hulls, maxGmmIterations);
             cv::bitwise_not(gmmPredictions, gmmPredictions);
-            cv::imwrite("../images/raw_gmm.png", gmmPredictions);
+            cv::imwrite("images/raw_gmm.png", gmmPredictions);
 
             end = (clock() - start) / CLOCKS_PER_SEC;
             if(debug) printf("Finished with Gaussian Mixture Modeling, time:%f\n", end);
@@ -190,7 +190,7 @@ namespace segment
             unsigned int numClumps = clumpBoundaries.size();
             image.convertTo(outimg, CV_8UC3);
             cv::drawContours(outimg, clumpBoundaries, allContours, pink, 2);
-            cv::imwrite("../images/clumpBoundaries.png", outimg);
+            cv::imwrite("images/clumpBoundaries.png", outimg);
 
             // extract each clump from the original image
             vector<Clump> clumps = vector<Clump>();
@@ -219,7 +219,7 @@ namespace segment
                 {
                     cv::Mat clump = clumps[i].extractFull(true);
                     char buffer[200];
-                    sprintf(buffer, "../images/clumps/clump_%i_full.png", i);
+                    sprintf(buffer, "images/clumps/clump_%i_full.png", i);
                     cv::imwrite(buffer, clump);
                 }
             }
@@ -261,12 +261,12 @@ namespace segment
                 char buffer[200];
 
                 clump.convertTo(outimg, CV_8UC3);
-                sprintf(buffer, "../images/clumps/clump_%i.png", i);
+                sprintf(buffer, "images/clumps/clump_%i.png", i);
                 cv::imwrite(buffer, outimg);
 
                 clump.convertTo(outimg, CV_8UC3);
                 cv::drawContours(outimg, clumps[i].nucleiBoundaries, allContours, pink);
-                sprintf(buffer, "../images/clumps/clump_%i_nuclei.png", i);
+                sprintf(buffer, "images/clumps/clump_%i_nuclei.png", i);
                 cv::imwrite(buffer, outimg);
             }
 
@@ -286,7 +286,7 @@ namespace segment
                 Clump* clump = &clumps[c];
                 cv::Mat regionMask = cv::Mat::zeros(clump->clumpMat.rows, clump->clumpMat.cols, CV_8U);
                 cv::drawContours(regionMask, clump->nucleiBoundaries, allContours, cv::Scalar(255));
-                cv::findContours(regionMask, clump->nucleiBoundaries, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+                cv::findContours(regionMask, clump->nucleiBoundaries, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
             }
 
             // populate the clump's vector of cells (this should probably be done earlier,
@@ -426,12 +426,12 @@ namespace segment
                 cv::Mat temp;
                 clump->nucleiAssocs.copyTo(temp);
                 temp.convertTo(temp, CV_8UC3);
-                sprintf(buffer, "../images/clumps/final_clump_%i_raw.png", c);
+                sprintf(buffer, "images/clumps/final_clump_%i_raw.png", c);
                 cv::imwrite(buffer, temp);
 
                 cv::Mat initialAssignments = segTools.runCanny(temp, threshold1, threshold2);
                 vector<vector<cv::Point>> initialCells;
-                cv::findContours(initialAssignments, initialCells, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+                cv::findContours(initialAssignments, initialCells, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 
                 clump->clumpMat.copyTo(outimg);
                 outimg.convertTo(outimg, CV_8UC3);
@@ -440,7 +440,7 @@ namespace segment
                 cv::drawContours(outimg, clump->nucleiBoundaries, allContours, pink, 2);
                 cv::drawContours(outimg, initialCells, allContours, cv::Scalar(255, 0, 0), 2);
 
-                sprintf(buffer, "../images/clumps/final_clump_%i_boundaries_1.png", c);
+                sprintf(buffer, "images/clumps/final_clump_%i_boundaries_1.png", c);
                 cv::imwrite(buffer, outimg);
             }
 
@@ -466,7 +466,7 @@ namespace segment
                 clump->nucleiAssocs.copyTo(temp);
                 cv::Mat initialAssignments = segTools.runCanny(temp, threshold1, threshold2);
                 vector<vector<cv::Point>> initialCells;
-                cv::findContours(initialAssignments, initialCells, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+                cv::findContours(initialAssignments, initialCells, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 
                 clump->clumpMat.copyTo(outimg);
                 outimg.convertTo(outimg, CV_8UC3);
@@ -475,7 +475,7 @@ namespace segment
                 cv::drawContours(outimg, clump->nucleiBoundaries, allContours, pink, 2);
                 cv::drawContours(outimg, initialCells, allContours, cv::Scalar(255, 0, 0), 2);
 
-                sprintf(buffer, "../images/clumps/final_clump_%i_boundaries.png", c);
+                sprintf(buffer, "images/clumps/final_clump_%i_boundaries.png", c);
                 // cv::imwrite(buffer, outimg);
             }
 

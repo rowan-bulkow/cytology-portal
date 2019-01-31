@@ -63,7 +63,7 @@ namespace segment
 
         // create clump mask
         cv::Mat mask = cv::Mat::zeros(img.rows, img.cols, CV_8U);
-        cv::drawContours(mask, vector<vector<cv::Point> >(1, this->contour), 0, cv::Scalar(255), CV_FILLED);
+        cv::drawContours(mask, vector<vector<cv::Point> >(1, this->contour), 0, cv::Scalar(255), cv::FILLED);
         cv::Mat clumpFull = cv::Mat(img.rows, img.cols, CV_8U);
         img.copyTo(clumpFull, mask);
 

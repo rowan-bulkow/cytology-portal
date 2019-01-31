@@ -11,6 +11,4 @@ Using: C++, python
 
 ## Cell Classification
 
-## Web Portal
-
-Written in ASP.NET (?) 
+Not yet implemented :(
