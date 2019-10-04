@@ -12,3 +12,20 @@ Using: C++, python
 ## Cell Classification
 
 Not yet implemented :(
+
+## Usage
+
+OpenCV, VLFeat, and Boost must be installed:
+- https://docs.opencv.org/4.0.1/df/d65/tutorial_table_of_content_introduction.html
+- http://www.vlfeat.org/download.html
+- https://www.boost.org/users/download/
+
+`makefile` must be updated with the locations of these installations, their include & bin folders mainly.
+`libvl.dylib` should be a symbolic link to the `libvl.dylib`, wherever your VLFeat was installed
+
+Executing `make` from the project root directory should generate an executable, `segment`.
+Running `segment` can be done by:
+```
+segment -p images/cyto.tif
+```
+With your image file path replaced. Defaults to `cyto.tif` in the same folder as the executable.
